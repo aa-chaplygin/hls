@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<!-- Media streaming example
+  Reads an .mpd file created using mp4box and plays the file
+-->     
+<head>
+  <meta charset="utf-8" />
+  <title>Media streaming example</title>
+  <script src="/js/jquery-1.10.2.min.js"></script>
+  <script src="/js/underscore-min.js"></script>
+  <script src="/js/hash/hash-md5.js"></script>
+  <script src="/js/manager/hash-manager.js"></script>
+</head>
+
+<body>
+	
+	<h2>rewind</h2>
+	<div id="grid">
+		<video id="myVideo" width="640" height="360" controls>No video available</video>
+	</div>
+	<div id="seek-div" style="cursor: pointer; margin-top: 4px">[seek->]</div>
+
+	<!-- script section -->
+	<script>
+
+	(function() {
+		'use strict'
+
+		// Url for .dat file
+		var datUrl = '/video/toystory_dash.dat';
+		//var datUrl = '/video/monaco_dash.dat';
+
+		// Global Parameters from .mpd file
+		var file;  // MP4 file
+		var type;  // Type of file
+		var codecs; //  Codecs allowed
+
+		// Elements
+		var videoElement = document.getElementById('myVideo');
+
+		// Description of initialization segment, and approx segment lengths 
+		var initialization;
+		var initializationHash;
+
+		// Parameters to drive segment loop
+		var index = 0; // Segment to get
+
+		// Source and buffers
+		var mediaSource;
+		var videoSource;
+
+		// Parameters to drive fetch loop
+		var segCheck;
+		var lastTime = 0;
+		var bufferUpdated = false;
+
+		var segments = [];
+		var segmentsCount;
+		
+		var durations = [];
+		var timeline = [];
+		var hashes = [];
+		
+		var seekTimeout;
+		
+		var $window = $(window);
+
+		// Start loading dat:
+		getDataJSON(datUrl);
+
+		// Gets the dat file and parses it    
+		function getDataJSON(url) {
+			if (url !== "") {
+				var xhr = new XMLHttpRequest(); // Set up xhr request
+				xhr.open("GET", url, true); // Open the request          
+				xhr.responseType = "json"; // Set the type of response expected
+				xhr.send();
+				//  Asynchronously wait for the data to return
+				xhr.onreadystatechange = function () {
+					if (xhr.readyState == xhr.DONE) {
+						var tempoutput = xhr.response;
+						// Get and display the parameters of the .dat file
+						getFileData(tempoutput);
+						// Set up video object, buffers, etc  
+						//setupVideo();
+					}
+				}
+			}
+		}
+
+		// Retrieve parameters from our stored .dat file
+		function getFileData(data) {
+
+			if (typeof(data) == 'string')
+			{
+				data = JSON.parse(data);
+			}
+			console.log('AAA data = ', data);
+
+			// Get DAT data from MP4box
+			file = '/video/' + data.u;
+			type = data.t;
+			codecs = data.c;
+			initialization = data.i;
+			initializationHash = data.ih;
+			segmentsCount = data.s.length;
+
+			segments.push([data.i, data.ih]);
+
+			(data.s).forEach(function(segmentItem) {
+				durations.push(parseInt(segmentItem.d)/1000);
+				hashes.push(segmentItem.h);
+				segments.push([segmentItem.r, segmentItem.h]);
+			});
+
+			for (var i = 0; i < durations.length; i++) {
+				timeline[i] = (i==0) ? durations[i] : timeline[i-1] + durations[i];
+			}
+
+			$window.on('Manager:connect', function(event, data) {
+				console.log('AAA --------------->>>>>>> Manager:connect ', data.type);
+				if (data && data.type == 'success')
+				{
+					// Set up video object, buffers, etc  
+					setupVideo();
+				}
+				else
+				{
+					console.log('AAA --------------->>>>>>> Нет подключения к DB');
+				}
+					
+			});
+			
+			Manager.initData(
+				{
+				file: file,
+				data: segments
+				}
+			);
+
+		}
+
+		// Create mediaSource and initialize video 
+		function setupVideo() {
+
+			// Detect MediaSource support
+			if ('MediaSource' in window) {
+				// Create the media source
+				mediaSource = new window.MediaSource();
+			}
+			else
+			{
+				console.log('AAA MediaSource is not supported!');
+				return false;
+			}
+
+			var url = URL.createObjectURL(mediaSource);
+			videoElement.src = url;
+
+			// Wait for event that tells us that our media source object is ready for a buffer to be added.
+			mediaSource.addEventListener('sourceopen', function (e) {
+				videoSource = mediaSource.addSourceBuffer(type + '; codecs="' +  codecs + '"');
+				initVideo();
+			},false);
+
+			// Remove the handler for the timeupdate event
+			videoElement.addEventListener("ended", function () {
+				videoElement.removeEventListener("timeupdate");
+			}, false);
+
+			// Seeking
+			videoElement.addEventListener("seeking", function(data){
+
+				if ( !seekTimeout ) {
+					seekTimeout = setTimeout(function() {
+						seekTimeout = null;
+
+						// Расчет index по timeline (с разными длительностями сегментов):
+						for (var i = 0; i < timeline.length; i++) {
+							if (videoElement.currentTime <= timeline[i])
+							{
+								index = i;
+								lastTime = (i==0) ? 0 : timeline[i-1];
+								break;
+							}
+						}
+
+						console.log('AAA seeking ', videoElement.currentTime, ' ', videoElement.duration, ' ', index);
+						playSegment(index);
+
+						videoElement.removeEventListener("timeupdate", fileChecks);
+						if (index < segmentsCount) {
+							videoElement.addEventListener("timeupdate", fileChecks);
+						}
+						index++;
+						fileChecks();
+
+					}, 100);
+				}
+
+			});
+
+			// Принудительный seek в проблемное место:
+			document.getElementById('seek-div').addEventListener('click', function (e) {
+				console.log('AAA SEEK');
+				videoElement.currentTime = 2736.6200000000013;
+				//videoElement.pause();
+			});	
+		}
+
+		//  Load video's initialization segment 
+		function initVideo() {
+			console.log('AAA initVideo');
+
+			segCheck = durations[0] * .50;
+			//console.log('AAA segCheck: ', segCheck);
+
+			Manager.getSegment(initializationHash, function(data){
+				// Add response to buffer
+				videoSource.appendBuffer(data);
+				// Wait for the update complete event before continuing
+				videoSource.addEventListener("update",updateFunct);
+			});
+		}
+
+		function updateFunct() {
+			//console.log('AAA updateFunct');
+			// This is a one shot function, when init segment finishes loading, update the buffer flag, call getStarted, and then remove this event.
+			bufferUpdated = true;
+			getStarted(file); // Get video playback started
+			// Now that video has started, remove the event listener
+			videoSource.removeEventListener("update", updateFunct);
+		}
+
+		//  Play our file segments
+		function getStarted(url) {
+			console.log('AAA getStarted');
+			// Start by loading the first segment of media
+			playSegment(index);
+			index++;
+			//  Continue in a loop where approximately every x seconds reload the buffer
+			videoElement.addEventListener("timeupdate", fileChecks);
+		}
+
+		//  Get video segments 
+		function fileChecks() {
+			// If we're ok on the buffer, then continue
+			if (bufferUpdated == true) {
+				if (index < segmentsCount) {
+					// Loads next segment when time is close to the end of the last loaded segment 
+					if ((videoElement.currentTime - lastTime) >= segCheck) {
+						playSegment(index);
+						// Расчет для точной длины сегмента:
+						lastTime = timeline[index-1];
+						index++;
+					}
+				} else {
+					console.log('AAA timeupdate off');
+					videoElement.removeEventListener("timeupdate", fileChecks);
+				}
+			}
+		}
+
+		//  Play segment plays a byte range (format nnnn-nnnnn) of a media file    
+		function playSegment(ind) {
+
+			Manager.getSegment(hashes[ind], function(data){
+				segCheck = durations[ind] * .50;
+				//console.log('AAA segCheck: ', segCheck);
+
+				// Add received content to the buffer
+				try {
+					//console.log('AAA xhr.DONE ', ind);
+					videoSource.appendBuffer(data);
+				} catch(e) {
+					console.log('AAA appendBuffer error: ');
+					var inter = setInterval(function(){
+						console.log('AAA int');
+						try {
+							console.log('AAA clearInterval');
+							videoSource.appendBuffer(data);
+							clearInterval(inter);
+						} catch(e) {
+							console.log('AAA appendBuffer error ');
+						}
+					}, 10);
+				}
+			});
+		}
+
+
+	})();
+	</script>
+  
+</body>
+</html>

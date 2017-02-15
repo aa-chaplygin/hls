@@ -1,0 +1,30 @@
+/*
+	Overal page layout styles
+*/
+
+html
+	{
+	font-size: 12px;
+	}
+
+body
+	{
+	padding: 10px;
+	font-family: Tahoma, Arial, sans-serif;
+	}
+
+h2
+	{
+	margin: 10px;
+	font-size: 14px;
+	}
+	
+ul
+	{
+	margin: 10px;
+	}
+	
+li
+	{
+	margin: 6px;
+	}

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>video</title>
+	</head>
+	<body>
+		<!-- Обычное видео -->
+		<h2>video</h2>
+		<div id="grid">
+			<video width="640" height="360" id="myVideo" controls>
+				<source src="/video/fox.mp4" type="video/mp4">
+				<!--
+				<source src="/video/monaco_dashinit.mp4" type="video/mp4">
+				<source src="/video/fox6_dashinit.mp4" type="video/mp4">
+				<source src="/video/toystory_dashinit.mp4" type="video/mp4">
+				<source src="http://www.quirksmode.org/html5/videos/big_buck_bunny.mp4" type="video/mp4">
+				<source src="http://s3.amazonaws.com/akamai.netstorage/HD_downloads/earth_night_rotate_1080.mov" type="video/mp4">
+				<source src="http://s3.amazonaws.com/akamai.netstorage/HD_downloads/Orion_SM.mp4" type="video/mp4">
+				-->
+			</video>
+		</div>
+		<div id="seek-div" style="cursor: pointer; margin-top: 4px">[seek->]</div>
+		
+		<script>
+			// Принудительный seek в проблемное место:
+			document.getElementById('seek-div').addEventListener('click', function (e) {
+				console.log('AAA SEEK');
+				var videoElement = document.getElementById('myVideo');
+				videoElement.currentTime = 3750;
+				videoElement.pause();
+			});
+		</script>
+		
+		<? //phpinfo(); ?>
+		
+	</body>
+</html>
+

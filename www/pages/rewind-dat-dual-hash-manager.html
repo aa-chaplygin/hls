@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<!-- Media streaming example
+  Reads an .mpd file created using mp4box and plays the file
+-->     
+<head>
+  <meta charset="utf-8" />
+  <title>Media streaming example</title>
+  <script src="/js/jquery-1.10.2.min.js"></script>
+  <script src="/js/jquery.hls-mpd.js"></script>
+  <script src="/js/jquery.hls-m4s.js"></script>
+  <script src="/js/underscore-min.js"></script>
+  <script src="/js/hash/hash-md5.js"></script>
+  <script src="/js/manager/hash-manager.js"></script>
+</head>
+
+<body>
+	
+	<h2>rewind</h2>
+	<div id="grid">
+		<video id="myVideo" width="640" height="360" controls>No video available</video>
+	</div>
+	<div id="seek-div" style="cursor: pointer; margin-top: 4px">[seek->]</div>
+
+	<!-- script section -->
+	<script>
+
+	(function() {
+		'use strict'
+
+		// Url for .dat file
+		var datUrl = '/video/toystory_dash.dat';
+		//var datUrl = '/video/manifest-toystory-comby.dat';
+		
+		// test m4s
+		//var datUrl = '/video/manifest-toystory-test.dat';
+		//var datUrl = '/video/manifest-toystory-test-dual.dat';
+
+		// Elements
+		var videoElement = document.getElementById('myVideo');
+
+		// Start loading dat:
+		getDataJSON(datUrl);
+
+		// Gets the dat file and parses it    
+		function getDataJSON(url) {
+			if (url !== "") {
+				var xhr = new XMLHttpRequest(); // Set up xhr request
+				xhr.open("GET", url, true); // Open the request          
+				xhr.responseType = "json"; // Set the type of response expected
+				xhr.send();
+				//  Asynchronously wait for the data to return
+				xhr.onreadystatechange = function () {
+					if (xhr.readyState == xhr.DONE) {
+						var tempoutput = xhr.response;
+						
+						if (typeof(tempoutput) == 'string') {
+							tempoutput = JSON.parse(tempoutput);
+						}
+
+						if (tempoutput.vrid) {
+							console.log('AAA Type = M4S ', $(videoElement));
+							$(videoElement).hlsM4S({
+								data: tempoutput
+							});
+						} else {
+							console.log('AAA Type = MPD', $(videoElement));
+							$(videoElement).hlsMPD({
+								data: tempoutput
+							});
+						}
+					}
+				}
+			}
+		}
+		
+		// Принудительный seek в проблемное место:
+		document.getElementById('seek-div').addEventListener('click', function (e) {
+			console.log('AAA SEEK');
+			videoElement.currentTime = 50;
+			//videoElement.pause();
+		});	
+		
+		
+	})();
+	</script>
+  
+</body>
+</html>
