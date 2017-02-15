@@ -1,2 +1,4 @@
 www/_diff_apps/*
-www/video/*
+www/_diff_video/*
+*.mp4
+

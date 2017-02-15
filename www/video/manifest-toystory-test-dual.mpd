@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<MPD
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="urn:mpeg:dash:schema:mpd:2011"
+    xsi:schemaLocation="urn:mpeg:dash:schema:mpd:2011 http://standards.iso.org/ittf/PubliclyAvailableStandards/MPEG-DASH_schema_files/DASH-MPD.xsd"
+    type="static"
+    mediaPresentationDuration="PT149.949S"
+    minBufferTime="PT10S"
+    profiles="urn:mpeg:dash:profile:isoff-main:2011">
+  <Period>
+    <AdaptationSet
+        id="1"
+        maxWidth="640"
+        maxHeight="360"
+        maxFrameRate="30000/1001">
+      <SegmentTemplate
+          timescale="30000"
+          media="http://hls.dev/video/output/$RepresentationID$/seg-$Number$.m4s"
+          initialization="http://hls.dev/video/output/$RepresentationID$/init.mp4"
+          startNumber="1">
+        <SegmentTimeline>
+		  <S d="311311"/>
+          <S d="205205"/>
+          <S d="368368"/>
+          <S d="329329"/>
+          <S d="273273"/>
+          <S d="288288"/>
+          <S d="342342"/>
+          <S d="283283"/>
+          <S d="299299"/>
+          <S d="318318"/>
+          <S d="291291"/>
+          <S d="304304"/>
+          <S d="292292"/>
+          <S d="320320"/>
+          <S d="271271"/>
+        </SegmentTimeline>
+      </SegmentTemplate>
+      <Representation
+          id="1"
+          mimeType="video/mp4"
+          codecs="avc1.4d401e"
+          width="640"
+          height="360"
+          frameRate="30000/1001"
+          bandwidth="1000000"/>
+    </AdaptationSet>
+    <AdaptationSet
+        id="2"
+        segmentAlignment="true">
+      <AudioChannelConfiguration
+          schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011"
+          value="2"/>
+      <SegmentTemplate
+          timescale="44100"
+          media="http://hls.dev/video/output/$RepresentationID$/seg-$Number$.m4s"
+          initialization="http://hls.dev/video/output/$RepresentationID$/init.mp4"
+          startNumber="1">
+        <SegmentTimeline>
+		  <S d="457728"/>
+          <S d="301056"/>
+          <S d="541696"/>
+          <S d="484352"/>
+          <S d="401408"/>
+          <S d="423936"/>
+          <S d="503808"/>
+          <S d="415744"/>
+          <S d="440320"/>
+          <S d="467968"/>
+          <S d="428032"/>
+          <S d="447488"/>
+          <S d="430080"/>
+          <S d="470016"/>
+          <S d="395264"/>
+        </SegmentTimeline>
+      </SegmentTemplate>
+      <Representation
+          id="2"
+          mimeType="audio/mp4"
+          codecs="mp4a.40.2"
+          audioSamplingRate="44100"
+          startWithSAP="1"
+          bandwidth="176400"/>
+    </AdaptationSet>
+  </Period>
+</MPD>
