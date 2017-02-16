@@ -9,14 +9,16 @@
     profiles="urn:mpeg:dash:profile:isoff-main:2011">
   <Period>
     <AdaptationSet
-        id="1"
         maxWidth="640"
         maxHeight="360"
         maxFrameRate="30000/1001">
+      <AudioChannelConfiguration
+          schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011"
+          value="2"/>
       <SegmentTemplate
           timescale="1000"
-          media="http://82.199.108.98:45080/mp4proxy?u=http%3A%2F%2Fhls123.hol.es%2Fvideo%2Ftoystory.mp4&amp;f=seg-$Number$-$RepresentationID$.m4s"
-          initialization="http://82.199.108.98:45080/mp4proxy?u=http%3A%2F%2Fhls123.hol.es%2Fvideo%2Ftoystory.mp4&amp;f=init-$RepresentationID$.mp4"
+          media="http://uppm.ru:8080/mp4proxy?u=http%3A%2F%2Fhls123.hol.es%2Fvideo%2Ftoystory.mp4&amp;f=seg-$Number$.m4s"
+          initialization="http://uppm.ru:8080/mp4proxy?u=http%3A%2F%2Fhls123.hol.es%2Fvideo%2Ftoystory.mp4&amp;f=init.mp4"
           startNumber="1">
         <SegmentTimeline>
           <S d="10377"/>
@@ -39,35 +41,13 @@
       <Representation
           id="1"
           mimeType="video/mp4"
-          codecs="avc1.4d401e"
+          startWithSAP="1"
+          bandwidth="1000000"
           width="640"
           height="360"
-          frameRate="30000/1001"
-          bandwidth="1000000"/>
-    </AdaptationSet>
-    <AdaptationSet
-        id="2"
-        segmentAlignment="true">
-      <AudioChannelConfiguration
-          schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011"
-          value="2"/>
-      <SegmentTemplate
-          timescale="1000"
-          media="http://82.199.108.98:45080/mp4proxy?u=http%3A%2F%2Fhls123.hol.es%2Fvideo%2Ftoystory.mp4&amp;f=seg-$Number$-$RepresentationID$.m4s"
-          initialization="http://82.199.108.98:45080/mp4proxy?u=http%3A%2F%2Fhls123.hol.es%2Fvideo%2Ftoystory.mp4&amp;f=init-$RepresentationID$.mp4"
-          startNumber="1">
-        <SegmentTimeline>
-          <S d="10000" r="13"/>
-          <S d="9861"/>
-        </SegmentTimeline>
-      </SegmentTemplate>
-      <Representation
-          id="2"
-          mimeType="audio/mp4"
-          codecs="mp4a.40.2"
           audioSamplingRate="44100"
-          startWithSAP="1"
-          bandwidth="176400"/>
+          frameRate="30000/1001"
+          codecs="avc1.4d401e,mp4a.40.2"/>
     </AdaptationSet>
   </Period>
 </MPD>

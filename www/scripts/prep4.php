@@ -2,6 +2,8 @@
 
 echo("--- Start ------------------- \n\n");
 
+chdir('../video/');
+
 // Определяем путь к .mpd-файлу:
 $mpd_path = "manifest-toystory.mpd";
 

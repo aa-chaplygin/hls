@@ -7,6 +7,7 @@ $getID3 = new getID3;
 
 echo("--- Start ------------------- \n\n");
 
+chdir('../video/');
 $file_path = isset($argv[1]) ? $argv[1] : 'toystory.mp4';
 $segment_size = isset($argv[2]) ? $argv[2] : 3;
 

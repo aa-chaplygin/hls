@@ -17,6 +17,7 @@ $getID3 = new getID3;
 
 echo("--- Start ------------------- \n\n");
 
+chdir('../video/');
 $file_path = isset($argv[1]) ? $argv[1] : 'toystory.mp4';
 $segment_size = isset($argv[2]) ? $argv[2] : 3;
 
@@ -31,6 +32,8 @@ $dash = floor($segment_size*1000000*8/$bitrate)*1000;
 echo("APP file = ".$file_path."\n");
 echo("Bitrate: ".$bitrate." \n");
 echo("Dash: ".$dash." \n");
+
+//return false;
 
 // Запускаем процесс фрагментирования:
 exec("MP4Box -dash ". $dash ." -frag-rap -segment-timeline ". $file_path);

@@ -1,4 +1,6 @@
 www/_diff_apps/*
 www/_diff_video/*
+www/video/output/*
 *.mp4
+
 

@@ -20,7 +20,7 @@
 	<!-- script section -->
 	<script>
 	
-	var mpdUrl = '/video/monaco_dash.mpd';
+	var mpdUrl = '/video/toystory_dash.mpd';
 	
 	var mp4box = new MP4Box();
 	mp4box.onReady = function (info) {
@@ -34,13 +34,13 @@
 	/*
 	var xhr3 = new XMLHttpRequest();
 	// Set the desired range of bytes we want from the mp4 video file
-	xhr3.open('GET', '/video/monaco.mp4');
+	xhr3.open('GET', '/video/toystory.mp4');
 	xhr3.send();
 	xhr3.responseType = 'arraybuffer';
 
 	xhr3.addEventListener("readystatechange", function () {
 		if (xhr3.readyState == xhr3.DONE) { // wait for video to load
-			mp4box.appendBuffer(new Uint8Array(xhr.response));
+			mp4box.appendBuffer(new Uint8Array(xhr3.response));
 		}
 	}, false);
 	*/

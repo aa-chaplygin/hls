@@ -1,11 +1,13 @@
 <?php
 echo("--- Start ------------------- \n\n");
 
+chdir('../video/');
+
 // Определяем путь к .mpd-файлу:
 //$mpd_path = "manifest-toystory-comby.mpd";
 
-$mpd_path = "manifest-toystory-test.mpd";
-//$mpd_path = "manifest-toystory-test-dual.mpd";
+$mpd_path = "test-manifest-toystory.mpd";
+//$mpd_path = "test-manifest-toystory-dual.mpd";
 
 function hash_segment($path)
 {
