@@ -31,13 +31,15 @@
 		// Url for .dat file
 		// range
 		//var datUrl = '/video/toystory_dash.dat';
+		var datUrl = '/video/toystory_dash-dual.dat';
+		
 		// m4s
 		//var datUrl = '/video/manifest-toystory-dual.dat';
 		//var datUrl = '/video/manifest-toystory.dat';
 		
 		// test m4s
 		//var datUrl = '/video/test-manifest-toystory-dual.dat';
-		var datUrl = '/video/test-manifest-toystory.dat';
+		//var datUrl = '/video/test-manifest-toystory.dat';
 
 		// Elements
 		var videoElement = document.getElementById('myVideo');
@@ -67,7 +69,7 @@
 								data: tempoutput
 							});
 						} else {
-							console.log('AAA Type = MPD', $(videoElement));
+							console.log('AAA Type = MPD ', $(videoElement));
 							$(videoElement).hlsMPD({
 								data: tempoutput
 							});

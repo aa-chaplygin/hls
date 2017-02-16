@@ -49,6 +49,7 @@
 		
 		var $window = $(window);
 		
+		console.log('AAA MPD data = ', config.data)
 		getFileData(config.data);
 		
 		function getFileData(data)
@@ -87,7 +88,7 @@
 				type: 'mpd',
 				segmentsData: {
 						file: file,
-						data: segments
+						segments: segments
 					}
 				}
 			);
