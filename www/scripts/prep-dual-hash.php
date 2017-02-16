@@ -4,6 +4,33 @@
 include_once('getid3/getid3.php');
 $getID3 = new getID3;
 
+function hash_segment($h, $r)
+{
+	$bytes_count = 30000;
+		
+	$range = explode('-', $r);
+	fseek($h, $range[0]);
+	$s = fread($h, $range[1]-$range[0]+1);
+	
+	if (strlen($s)<$bytes_count)
+	{
+		$data_s = $s;
+	}
+	else
+	{
+		$data_s = '';
+		$step = floor(strlen($s)/$bytes_count);
+		$j = 0;
+		while ($j < strlen($s)):
+			$data_s .= $s[$j];
+			$j+=$step;
+		endwhile;
+	}
+	
+	$hash = md5($data_s);
+	return $hash;
+}
+
 
 echo("--- Start ------------------- \n\n");
 
@@ -114,42 +141,14 @@ else
 	$mp4fragmented_path = str_replace("dash.mpd", "", $mpd_path) . "dashinit.mp4";
 }
 
+// хеш видео
 $handle = fopen($mp4fragmented_path, "rb");
-
-$range = explode('-', $data['i']);
-fseek($handle, $range[0]);
-$s = fread($handle, $range[1]-$range[0]+1);
-$hash = md5($s);
-$data['ih'] = $hash;
-
+$data['ih'] = hash_segment($handle, $data['i']);
+echo ("hash Video ".$data['ih']."\n");
 for ($i = 0; $i < count($data['s']); $i++) {
-	
-	$range = explode('-', $data['s'][$i]['r']);
-	fseek($handle, $range[0]);
-	$s = fread($handle, $range[1]-$range[0]+1);
-	
-	$bytes_count = 30000;
-	if (strlen($s)<$bytes_count)
-	{
-		$data_s = $s;
-	}
-	else
-	{
-		$data_s = '';
-		$step = floor(strlen($s)/$bytes_count);
-		$j = 0;
-		while ($j < strlen($s)):
-			$data_s .= $s[$j];
-			$j+=$step;
-		endwhile;
-	}
-	
-	$hash = md5($data_s);
-	echo ("hash: " . $hash . "  \n");
-	$data['s'][$i]['h'] = $hash;
-	
+	$data['s'][$i]['h'] = hash_segment($handle, $data['s'][$i]['r']);
+	echo ("hash: " . $data['s'][$i]['h'] . "  \n");
 }
-
 fclose($handle);
 
 
@@ -194,53 +193,19 @@ if ($xml->Period->AdaptationSet[1])
 		}
 	}
 	
-	
 	// Определяем путь к отфрагментированному .mp4-файлу:
 	$mp4fragmented_path = str_replace("dash-dual.mpd", "", $mpd_path) . "track2_dashinit.mp4";
 	
+	// хеш аудио
 	$handle = fopen($mp4fragmented_path, "rb");
-
-	$range = explode('-', $data['i']);
-	fseek($handle, $range[0]);
-	$s = fread($handle, $range[1]-$range[0]+1);
-	$hash = md5($s);
-	$data['ih'] = $hash;
-
+	$data['iha'] = hash_segment($handle, $data['i']);
+	echo ("hash Audio ".$data['iha']."\n");
 	for ($i = 0; $i < count($data['sa']); $i++) {
-
-		$range = explode('-', $data['sa'][$i]['r']);
-		fseek($handle, $range[0]);
-		$s = fread($handle, $range[1]-$range[0]+1);
-
-		$bytes_count = 30000;
-		if (strlen($s)<$bytes_count)
-		{
-			$data_s = $s;
-		}
-		else
-		{
-			$data_s = '';
-			$step = floor(strlen($s)/$bytes_count);
-			$j = 0;
-			while ($j < strlen($s)):
-				$data_s .= $s[$j];
-				$j+=$step;
-			endwhile;
-		}
-
-		$hash = md5($data_s);
-		echo ("hash: " . $hash . "  \n");
-		$data['sa'][$i]['h'] = $hash;
-
+		$data['sa'][$i]['h'] = hash_segment($handle, $data['sa'][$i]['r']);
+		echo ("hash: " . $data['sa'][$i]['h'] . "  \n");
 	}
-
 	fclose($handle);
-
-	
-	
-	
 }
-
 
 //echo ("DATA: ". json_encode($data) ."\n");
 
