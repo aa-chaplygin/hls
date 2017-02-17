@@ -84,8 +84,8 @@ var Manager = (function() {
 				
 				if (type == 'mpd')
 				{
-					var url = segmentsData.file;
 					var segmentItem = _.find(segmentsData.segments, function(item){ return item[1] == hashValue; });
+					var url = (segmentItem[2] == 'v') ? segmentsData.file : segmentsData.fileAudio;
 					var range = segmentItem[0];
 				}
 				else // type == 'm4s'

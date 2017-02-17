@@ -6,44 +6,70 @@ chdir('../video/');
 // Определяем путь к .mpd-файлу:
 //$mpd_path = "manifest-toystory-comby.mpd";
 
-$mpd_path = "test-manifest-toystory.mpd";
+//$mpd_path = "test-manifest-toystory.mpd";
 //$mpd_path = "test-manifest-toystory-dual.mpd";
 
+// Хеширование удаленного файла
 function hash_segment($path)
 {
-		$bytes_count = 30000;
-		
-		//$path = iconv('UTF-8', 'ISO-8859-1',$path);
-		//echo ("DATA init: ". $path ."\n");
-		$handle = fopen($path, "rb");
-		//$contents = stream_get_contents($handle);
-		$headers = get_headers($path, 1);
-		$size = $headers["Content-Length"];
-		//echo ("DATA Content-Length: ". $size ."\n");
-		
-		if ($size<$bytes_count)
-		{
-			$s = fread($handle, $size);
-			$data_s = $s;
-		}
-		else
-		{
-			$data_s = '';
-			$contents = stream_get_contents($handle);
-			$step = floor(strlen($contents)/$bytes_count);
-			$j = 0;
-			while ($j < strlen($contents)):
-				$data_s .= $contents[$j];
-				$j+=$step;
-			endwhile;
-		}
-		
-		$hash = md5($data_s);
-		echo ("hash: ". $path . " ". $size . " " . $hash . "\n");
-		fclose($handle);
-		return $hash;
+	$bytes_count = 30000;
+	
+	$handle = fopen($path, "rb");
+	$headers = get_headers($path, 1);
+	$size = $headers["Content-Length"];
+	
+	if ($size<$bytes_count)
+	{
+		$s = fread($handle, $size);
+		$data_s = $s;
+	}
+	else
+	{
+		$data_s = '';
+		$contents = stream_get_contents($handle);
+		$step = floor(strlen($contents)/$bytes_count);
+		$j = 0;
+		while ($j < strlen($contents)):
+			$data_s .= $contents[$j];
+			$j+=$step;
+		endwhile;
 	}
 
+	$hash = md5($data_s);
+	echo ("hash: ". $path . " ". $size . " " . $hash . "\n");
+	fclose($handle);
+	return $hash;
+}
+
+// Хеширование локального файла
+function hash_segment_local($path)
+{
+	$bytes_count = 30000;
+	
+	$h = fopen($path, "rb");
+	fseek($h, 0);
+	$size = filesize($path);
+	$s = fread($h, $size);
+	
+	if ($size<$bytes_count)
+	{
+		$data_s = $s;
+	}
+	else
+	{
+		$data_s = '';
+		$step = floor(strlen($s)/$bytes_count);
+		$j = 0;
+		while ($j < strlen($s)):
+			$data_s .= $s[$j];
+			$j+=$step;
+		endwhile;
+	}
+	
+	$hash = md5($data_s);
+	fclose($h);
+	return $hash;
+}
 
 // Распарсиваем XML:
 $data = array();
@@ -67,6 +93,7 @@ $timescale_video = (string)$SegmentTemplate_attr['timescale']/1000;
 // хеш init
 $path_segment = str_replace("\$RepresentationID\$", $data['vrid'], $data['i']);
 $data['ihv'] = hash_segment($path_segment);
+echo ("hash Video init1: ".$data['ihv']."\n");
 
 $data['sv'] = array();
 $timeline = $xml->Period->AdaptationSet[0]->SegmentTemplate->SegmentTimeline->S;
@@ -115,6 +142,7 @@ if ($xml->Period->AdaptationSet[1])
 	// хеш init
 	$path_segment = str_replace("\$RepresentationID\$", $data['arid'], $data['i']);
 	$data['iha'] = hash_segment($path_segment);
+	echo ("hash Video init: ".$data['iha']."\n");
 	
 	$data['sa'] = array();
 	$timelineAudio = $xml->Period->AdaptationSet[1]->SegmentTemplate->SegmentTimeline->S;

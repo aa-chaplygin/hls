@@ -374,17 +374,17 @@
 			
 			if (isVideo)
 			{
-				url = mediaVideo.replace("$Number$", ind + startNumberVideoSegment);
+				//url = mediaVideo.replace("$Number$", ind + startNumberVideoSegment);
+				//console.log('AAA playSegment video index = ', ind, ' - ', url);
 				hashValue = _.find(segmentsData.segments, function(item){ return (item.t == 'v' && item.i == ind + startNumberVideoSegment); }).h;
 				console.log('AAA playSegment video hashValue = ', hashValue);
-				console.log('AAA playSegment video index = ', ind, ' - ', url);
 			}
 			else
 			{
-				url = mediaAudio.replace("$Number$", ind + startNumberAudioSegment);
+				//url = mediaAudio.replace("$Number$", ind + startNumberAudioSegment);
+				//console.log('AAA playSegment audio index = ', ind, ' - ', url);
 				hashValue = _.find(segmentsData.segments, function(item){ return (item.t == 'a' && item.i == ind + startNumberAudioSegment); }).h;
 				console.log('AAA playSegment audio hashValue = ', hashValue);
-				console.log('AAA playSegment audio index = ', ind, ' - ', url);
 			}
 
 			Manager.getSegment(hashValue, function(data){
