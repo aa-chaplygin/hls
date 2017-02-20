@@ -91,9 +91,7 @@ var Manager = (function() {
 				else // type == 'm4s'
 				{
 					var segmentItem = _.find(segmentsData.segments, function(item){ return item.h == hashValue; });
-					console.log('AAA segmentItem = ', segmentItem);
-					console.log('AAA segmentsData = ', segmentsData);
-					
+				
 					if (segmentItem.i == 'i')
 					{
 						var url = (segmentItem.t == 'v') ? segmentsData.fileVideoInit : segmentsData.fileAudioInit;
@@ -103,10 +101,10 @@ var Manager = (function() {
 						var urlTemplate = (segmentItem.t == 'v') ? segmentsData.fileVideo : segmentsData.fileAudio;
 						var url = urlTemplate.replace("$Number$", segmentItem.i);
 					}
-					
 				}
 
-				if (range || url) {
+				//if (range || url) {
+				if (segmentItem.r || url) {
 
 					// Запрос на разные домены:
 					/*

@@ -23,39 +23,38 @@
 		var videoElement = config.$context;
 		var videoElementDom = config.$context[0];
 		
-		
 		// Source and buffers
 		var mediaSource;
 		var videoSource;
 		var audioSource;
 		
 		// Description of initialization segment, and approx segment lengths 
-		var initialization;
-		var initializationHash;
+		var initializationVideo;
 		var initializationAudio;
+		var initializationVideoHash;
 		var initializationAudioHash;
 		
 		var segments = [];
-		var segmentsCount;
+		var segmentsVideoCount;
 		var segmentsAudioCount;
 
-		var durations = [];
+		var durationsVideo = [];
 		var durationsAudio = [];
-		var timeline = [];
+		var timelineVideo = [];
 		var timelineAudio = [];
-		var hashes = [];
+		var hashesVideo = [];
 		var hashesAudio = [];
 		
 		// Parameters to drive segment loop
-		var index = 0; // Segment to get
+		var indexVideo = 0; // Segment to get
 		var indexAudio = 0;
 
 		// Parameters to drive fetch loop
-		var segCheck;
+		var segCheckVideo;
 		var segCheckAudio;
-		var lastTime = 0;
+		var lastTimeVideo = 0;
 		var lastTimeAudio = 0;
-		var bufferUpdated = false;
+		var bufferVideoUpdated = false;
 		var bufferAudioUpdated = false;
 		
 		var seekTimeout;
@@ -77,20 +76,20 @@
 			// video data
 			file = '/video/' + config.data.u;
 			codecs = config.data.c;
-			initialization = config.data.i;
-			initializationHash = config.data.ih;
-			segmentsCount = config.data.s.length;
+			initializationVideo = config.data.i;
+			initializationVideoHash = config.data.ih;
+			segmentsVideoCount = config.data.s.length;
 
 			segments.push({t: 'v', r: config.data.i, h: config.data.ih});
 
 			(config.data.s).forEach(function(segmentItem) {
-				durations.push(parseInt(segmentItem.d)/1000);
-				hashes.push(segmentItem.h);
+				durationsVideo.push(parseInt(segmentItem.d)/1000);
+				hashesVideo.push(segmentItem.h);
 				segments.push({t: 'v', r: segmentItem.r,h: segmentItem.h});
 			});
 
-			for (var i = 0; i < durations.length; i++) {
-				timeline[i] = (i==0) ? durations[i] : timeline[i-1] + durations[i];
+			for (var i = 0; i < durationsVideo.length; i++) {
+				timelineVideo[i] = (i==0) ? durationsVideo[i] : timelineVideo[i-1] + durationsVideo[i];
 			}
 			
 			// audio data
@@ -119,11 +118,11 @@
 			}
 
 			$window.on('Manager:connect', function(event, data) {
-				console.log('AAA --------------->>>>>>> Manager:connect ', data.type);
+				console.log('AAA Manager:connect ', data.type);
 				if (data && data.type == 'success') {
 					setupVideo(); // Set up video object
 				} else {
-					console.log('AAA --------------->>>>>>> Нет подключения к DB');
+					console.log('AAA Нет подключения к DB');
 				}
 			});
 
@@ -179,11 +178,11 @@
 						seekTimeout = null;
 
 						// Расчет index по timeline (с разными длительностями сегментов):
-						for (var i = 0; i < timeline.length; i++) {
-							if (videoElementDom.currentTime <= timeline[i])
+						for (var i = 0; i < timelineVideo.length; i++) {
+							if (videoElementDom.currentTime <= timelineVideo[i])
 							{
-								index = i;
-								lastTime = (i==0) ? 0 : timeline[i-1];
+								indexVideo = i;
+								lastTimeVideo = (i==0) ? 0 : timelineVideo[i-1];
 								break;
 							}
 						}
@@ -200,19 +199,19 @@
 							}
 						}
 
-						console.log('AAA seeking ', videoElementDom.currentTime, ' ', index, ' ', indexAudio);
-						playSegment(index, true);
+						console.log('AAA seeking ', videoElementDom.currentTime, ' ', indexVideo, ' ', indexAudio);
+						playSegment(indexVideo, true);
 						if (isDualTracks)
 						{
 							playSegment(indexAudio, false);
 						}
 
 						videoElement.off("timeupdate", fileChecks);
-						//if (index < segmentsCount) {
-						if (index < segmentsCount && (!isDualTracks || indexAudio < segmentsAudioCount)) {
+						//if (indexVideo < segmentsVideoCount) {
+						if (indexVideo < segmentsVideoCount && (!isDualTracks || indexAudio < segmentsAudioCount)) {
 							videoElement.on("timeupdate", fileChecks);
 						}
-						index++;
+						indexVideo++;
 						if (isDualTracks)
 						{
 							indexAudio++;
@@ -229,10 +228,10 @@
 		function initVideo() {
 			console.log('AAA initVideo');
 
-			segCheck = durations[0] * .50;
-			//console.log('AAA segCheck: ', segCheck);
+			segCheckVideo = durationsVideo[0] * .50;
+			//console.log('AAA segCheckVideo: ', segCheckVideo);
 
-			Manager.getSegment(initializationHash, function(data){
+			Manager.getSegment(initializationVideoHash, function(data){
 				// Add response to buffer
 				videoSource.appendBuffer(data);
 				// Wait for the update complete event before continuing
@@ -254,7 +253,7 @@
 		
 		function updateFunct() {
 			console.log('AAA updateFunct');
-			bufferUpdated = true;
+			bufferVideoUpdated = true;
 			getStarted();
 			videoSource.removeEventListener("update", updateFunct);
 		}
@@ -273,8 +272,8 @@
 			if (audioIsStarted || !isDualTracks)
 			{
 				// Start by loading the first segment of media
-				playSegment(index, true);
-				index++;
+				playSegment(indexVideo, true);
+				indexVideo++;
 				
 				if (isDualTracks)
 				{
@@ -293,8 +292,8 @@
 			audioIsStarted = true;
 			if (videoIsStarted)
 			{
-				playSegment(index, true);
-				index++;
+				playSegment(indexVideo, true);
+				Videoindex++;
 				playSegment(indexAudio, false);
 				indexAudio++;
 				videoElement.on("timeupdate", fileChecks);
@@ -306,15 +305,15 @@
 			console.log('AAA playSegment ',ind , '  ',isVideo );
 			
 			var 
-				hashValue = (isVideo) ? hashes[ind] : hashesAudio[ind],
+				hashValue = (isVideo) ? hashesVideo[ind] : hashesAudio[ind],
 				targetSource = (isVideo) ? videoSource : audioSource;
 			
 			Manager.getSegment(hashValue, function(data){
 				// Расчет для точной длины сегмента:
 				if (isVideo)
 				{
-					segCheck = durations[ind] * .50;
-					//console.log('AAA segCheck: ', ind, '  ', segCheck);
+					segCheckVideo = durationsVideo[ind] * .50;
+					//console.log('AAA segCheckVideo: ', ind, '  ', segCheckVideo);
 				}
 				else
 				{
@@ -345,16 +344,16 @@
 		//  Get video segments 
 		function fileChecks() {
 			// If we're ok on the buffer, then continue
-			//if (bufferUpdated == true) {
-			if (bufferUpdated == true && ( !isDualTracks || bufferAudioUpdated == true )) {
+			//if (bufferVideoUpdated == true) {
+			if (bufferVideoUpdated == true && ( !isDualTracks || bufferAudioUpdated == true )) {
 				
-				if (index < segmentsCount) {
+				if (indexVideo < segmentsVideoCount) {
 					// Loads next segment when time is close to the end of the last loaded segment 
-					if ((videoElementDom.currentTime - lastTime) >= segCheck) {
-						playSegment(index, true);
+					if ((videoElementDom.currentTime - lastTimeVideo) >= segCheckVideo) {
+						playSegment(indexVideo, true);
 						// Расчет для точной длины сегмента:
-						lastTime = timeline[index-1];
-						index++;
+						lastTimeVideo = timelineVideo[indexVideo-1];
+						indexVideo++;
 					}
 				}
 				
@@ -369,7 +368,7 @@
 					}
 				}
 				
-				if (index >= segmentsCount && (!isDualTracks || indexAudio >= segmentsAudioCount))
+				if (indexVideo >= segmentsVideoCount && (!isDualTracks || indexAudio >= segmentsAudioCount))
 				{
 					console.log('AAA timeupdate off');
 					videoElement.off("timeupdate", fileChecks);

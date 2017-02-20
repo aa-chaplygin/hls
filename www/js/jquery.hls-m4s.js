@@ -119,11 +119,11 @@
 			}
 			
 			$window.on('Manager:connect', function(event, data) {
-				console.log('AAA --->>> Manager:connect ', data.type);
+				console.log('AAA Manager:connect ', data.type);
 				if (data && data.type == 'success') {
 					setupVideo(); // Set up video object
 				} else {
-					console.log('AAA --->>> Нет подключения к DB');
+					console.log('AAA Нет подключения к DB');
 				}
 			});
 			
