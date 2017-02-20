@@ -94,19 +94,19 @@ $xml = simplexml_load_file($mpd_path);
 $Representation = $xml->Period->AdaptationSet[0]->Representation;
 $Representation_attr = $Representation->attributes();
 
-$data['u'] = (string)$Representation->BaseURL;
 $data['t'] = (string)$Representation_attr['mimeType'];
-$data['c'] = (string)$Representation_attr['codecs'];
+$data['uv'] = (string)$Representation->BaseURL;
+$data['cv'] = (string)$Representation_attr['codecs'];
 
 $initialization = $xml->Period->AdaptationSet[0]->Representation->SegmentList->Initialization;
 $initialization_attr = $initialization->attributes();
-$data['i'] = (string)$initialization_attr['range'];
+$data['iv'] = (string)$initialization_attr['range'];
 
-$data['s'] = array();
+$data['sv'] = array();
 $segments = $xml->Period->AdaptationSet[0]->Representation->SegmentList->SegmentURL;
 foreach($segments as $segment_item) {
 	$segment_item_attr = $segment_item->attributes();
-	array_push($data['s'], array(
+	array_push($data['sv'], array(
 		'r' => (string)$segment_item_attr['mediaRange'],
 		'd' => null,
 		'h' => null
@@ -119,12 +119,12 @@ foreach($timeline as $timeline_item) {
 	$timeline_item_attr = $timeline_item->attributes();
 	$duration = (int)$timeline_item_attr['d'];
 	$repeat = $timeline_item_attr['r'];
-	$data['s'][$i]['d'] = $duration;
+	$data['sv'][$i]['d'] = $duration;
 	$i++;
 	if ($repeat)
 	{
 		for ($j = 0; $j < $repeat; $j++) {
-			$data['s'][$i]['d'] = $duration;
+			$data['sv'][$i]['d'] = $duration;
 			$i++;
 		}
 	}
@@ -143,11 +143,11 @@ else
 
 // хеш видео
 $handle = fopen($mp4fragmented_path, "rb");
-$data['ih'] = hash_segment($handle, $data['i']);
-echo ("hash Video ".$data['ih']."\n");
-for ($i = 0; $i < count($data['s']); $i++) {
-	$data['s'][$i]['h'] = hash_segment($handle, $data['s'][$i]['r']);
-	echo ("hash: " . $data['s'][$i]['h'] . "  \n");
+$data['ihv'] = hash_segment($handle, $data['iv']);
+echo ("hash Video ".$data['ihv']."\n");
+for ($i = 0; $i < count($data['sv']); $i++) {
+	$data['sv'][$i]['h'] = hash_segment($handle, $data['sv'][$i]['r']);
+	echo ("hash: " . $data['sv'][$i]['h'] . "  \n");
 }
 fclose($handle);
 
@@ -197,7 +197,7 @@ if ($xml->Period->AdaptationSet[1])
 	
 	// хеш аудио
 	$handle = fopen($mp4fragmented_path, "rb");
-	$data['iha'] = hash_segment($handle, $data['i']);
+	$data['iha'] = hash_segment($handle, $data['ia']);
 	echo ("hash Audio ".$data['iha']."\n");
 	for ($i = 0; $i < count($data['sa']); $i++) {
 		$data['sa'][$i]['h'] = hash_segment($handle, $data['sa'][$i]['r']);

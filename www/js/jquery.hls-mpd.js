@@ -74,15 +74,15 @@
 			type = config.data.t;
 			
 			// video data
-			file = '/video/' + config.data.u;
-			codecs = config.data.c;
-			initializationVideo = config.data.i;
-			initializationVideoHash = config.data.ih;
-			segmentsVideoCount = config.data.s.length;
+			file = '/video/' + config.data.uv;
+			codecs = config.data.cv;
+			initializationVideo = config.data.iv;
+			initializationVideoHash = config.data.ihv;
+			segmentsVideoCount = config.data.sv.length;
 
-			segments.push({t: 'v', r: config.data.i, h: config.data.ih});
+			segments.push({t: 'v', r: config.data.iv, h: config.data.ihv});
 
-			(config.data.s).forEach(function(segmentItem) {
+			(config.data.sv).forEach(function(segmentItem) {
 				durationsVideo.push(parseInt(segmentItem.d)/1000);
 				hashesVideo.push(segmentItem.h);
 				segments.push({t: 'v', r: segmentItem.r,h: segmentItem.h});
@@ -293,7 +293,7 @@
 			if (videoIsStarted)
 			{
 				playSegment(indexVideo, true);
-				Videoindex++;
+				indexVideo++;
 				playSegment(indexAudio, false);
 				indexAudio++;
 				videoElement.on("timeupdate", fileChecks);
