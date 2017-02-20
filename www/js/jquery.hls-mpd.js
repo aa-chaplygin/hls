@@ -81,12 +81,12 @@
 			initializationHash = config.data.ih;
 			segmentsCount = config.data.s.length;
 
-			segments.push([config.data.i, config.data.ih, 'v']);
+			segments.push({t: 'v', r: config.data.i, h: config.data.ih});
 
 			(config.data.s).forEach(function(segmentItem) {
 				durations.push(parseInt(segmentItem.d)/1000);
 				hashes.push(segmentItem.h);
-				segments.push([segmentItem.r, segmentItem.h, 'v']);
+				segments.push({t: 'v', r: segmentItem.r,h: segmentItem.h});
 			});
 
 			for (var i = 0; i < durations.length; i++) {
@@ -104,12 +104,12 @@
 				initializationAudioHash = config.data.iha;
 				segmentsAudioCount = config.data.sa.length;
 				
-				segments.push([config.data.ia, config.data.iha, 'a']);
+				segments.push({t: 'a', r: config.data.ia, h: config.data.iha});
 				
 				(config.data.sa).forEach(function(segmentItem) {
 					durationsAudio.push(parseInt(segmentItem.d)/1000);
 					hashesAudio.push(segmentItem.h);
-					segments.push([segmentItem.r, segmentItem.h, 'a']);
+					segments.push({t: 'a', r: segmentItem.r, h: segmentItem.h});
 				});
 				
 				for (var i = 0; i < durationsAudio.length; i++) {

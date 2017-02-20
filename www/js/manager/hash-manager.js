@@ -84,9 +84,9 @@ var Manager = (function() {
 				
 				if (type == 'mpd')
 				{
-					var segmentItem = _.find(segmentsData.segments, function(item){ return item[1] == hashValue; });
-					var url = (segmentItem[2] == 'v') ? segmentsData.file : segmentsData.fileAudio;
-					var range = segmentItem[0];
+					var segmentItem = _.find(segmentsData.segments, function(item){ return item.h == hashValue; });
+					var url = (segmentItem.t == 'v') ? segmentsData.file : segmentsData.fileAudio;
+					var range = segmentItem.r;
 				}
 				else // type == 'm4s'
 				{
