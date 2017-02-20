@@ -4,6 +4,63 @@
 include_once('getid3/getid3.php');
 $getID3 = new getID3;
 
+function parse_data($n, $mp4fragmented_path, $fn)
+{
+	global $data, $xml;
+	
+	$Representation = $xml->Period->AdaptationSet[$n]->Representation;
+	$Representation_attr = $Representation->attributes();
+
+	if ($n == 0)
+	{
+		$data['t'] = (string)$Representation_attr['mimeType'];
+	}
+	$data[$fn['u']] = (string)$Representation->BaseURL;
+	$data[$fn['c']] = (string)$Representation_attr['codecs'];
+
+	$initialization = $xml->Period->AdaptationSet[$n]->Representation->SegmentList->Initialization;
+	$initialization_attr = $initialization->attributes();
+	$data[$fn['ir']] = (string)$initialization_attr['range'];
+
+	$data[$fn['s']] = array();
+	$segments = $xml->Period->AdaptationSet[$n]->Representation->SegmentList->SegmentURL;
+	foreach($segments as $segment_item) {
+		$segment_item_attr = $segment_item->attributes();
+		array_push($data[$fn['s']], array(
+			'r' => (string)$segment_item_attr['mediaRange'],
+			'd' => null,
+			'h' => null
+		));
+	}
+
+	$i = 0;
+	$timeline = $xml->Period->AdaptationSet[$n]->SegmentList->SegmentTimeline->S;
+	foreach($timeline as $timeline_item) {
+		$timeline_item_attr = $timeline_item->attributes();
+		$duration = (int)$timeline_item_attr['d'];
+		$repeat = $timeline_item_attr['r'];
+		$data[$fn['s']][$i]['d'] = $duration;
+		$i++;
+		if ($repeat)
+		{
+			for ($j = 0; $j < $repeat; $j++) {
+				$data[$fn['s']][$i]['d'] = $duration;
+				$i++;
+			}
+		}
+	}
+	
+	// хеш сегментов
+	$handle = fopen($mp4fragmented_path, "rb");
+	$data[$fn['ih']] = hash_segment($handle, $data[$fn['ir']]);
+	echo ("hash Video ".$data[$fn['ih']]."\n");
+	for ($i = 0; $i < count($data[$fn['s']]); $i++) {
+		$data[$fn['s']][$i]['h'] = hash_segment($handle, $data[$fn['s']][$i]['r']);
+		echo ("hash: " . $data[$fn['s']][$i]['h'] . "  \n");
+	}
+	fclose($handle);
+}
+
 function hash_segment($h, $r)
 {
 	$bytes_count = 30000;
@@ -31,13 +88,12 @@ function hash_segment($h, $r)
 	return $hash;
 }
 
-
 echo("--- Start ------------------- \n\n");
 
 chdir('../video/');
 
 // Типа разбивки
-$is_dual = false; // true - разбивка на дорожки
+$is_dual = true; // true - разбивка на дорожки
 
 $file_path = isset($argv[1]) ? $argv[1] : 'toystory.mp4';
 $segment_size = isset($argv[2]) ? $argv[2] : 3;
@@ -91,119 +147,36 @@ if (strpos($str, "\"\n"))
 $data = array();
 $xml = simplexml_load_file($mpd_path);
 
-$Representation = $xml->Period->AdaptationSet[0]->Representation;
-$Representation_attr = $Representation->attributes();
-
-$data['t'] = (string)$Representation_attr['mimeType'];
-$data['uv'] = (string)$Representation->BaseURL;
-$data['cv'] = (string)$Representation_attr['codecs'];
-
-$initialization = $xml->Period->AdaptationSet[0]->Representation->SegmentList->Initialization;
-$initialization_attr = $initialization->attributes();
-$data['iv'] = (string)$initialization_attr['range'];
-
-$data['sv'] = array();
-$segments = $xml->Period->AdaptationSet[0]->Representation->SegmentList->SegmentURL;
-foreach($segments as $segment_item) {
-	$segment_item_attr = $segment_item->attributes();
-	array_push($data['sv'], array(
-		'r' => (string)$segment_item_attr['mediaRange'],
-		'd' => null,
-		'h' => null
-	));
-}
-
-$i = 0;
-$timeline = $xml->Period->AdaptationSet[0]->SegmentList->SegmentTimeline->S;
-foreach($timeline as $timeline_item) {
-	$timeline_item_attr = $timeline_item->attributes();
-	$duration = (int)$timeline_item_attr['d'];
-	$repeat = $timeline_item_attr['r'];
-	$data['sv'][$i]['d'] = $duration;
-	$i++;
-	if ($repeat)
-	{
-		for ($j = 0; $j < $repeat; $j++) {
-			$data['sv'][$i]['d'] = $duration;
-			$i++;
-		}
-	}
-}
-
-
 // Определяем путь к отфрагментированному .mp4-файлу:
 if ($is_dual)
 {
-	$mp4fragmented_path = str_replace("dash-dual.mpd", "", $mpd_path) . "track1_dashinit.mp4";
+	$mp4fragmented_path_video = str_replace("dash-dual.mpd", "", $mpd_path) . "track1_dashinit.mp4";
+	$mp4fragmented_path_audio = str_replace("dash-dual.mpd", "", $mpd_path) . "track2_dashinit.mp4";
 }
 else
 {
-	$mp4fragmented_path = str_replace("dash.mpd", "", $mpd_path) . "dashinit.mp4";
+	$mp4fragmented_path_video = str_replace("dash.mpd", "", $mpd_path) . "dashinit.mp4";
 }
 
-// хеш видео
-$handle = fopen($mp4fragmented_path, "rb");
-$data['ihv'] = hash_segment($handle, $data['iv']);
-echo ("hash Video ".$data['ihv']."\n");
-for ($i = 0; $i < count($data['sv']); $i++) {
-	$data['sv'][$i]['h'] = hash_segment($handle, $data['sv'][$i]['r']);
-	echo ("hash: " . $data['sv'][$i]['h'] . "  \n");
-}
-fclose($handle);
+// Логика для видео-дорожек
+parse_data(0, $mp4fragmented_path_video, array(
+	'u' => 'uv',
+	'c' => 'cv',
+	'ir' => 'irv',
+	'ih' => 'ihv',
+	's' => 'sv',
+));
 
 // Логика для аудио-дорожек
-if ($xml->Period->AdaptationSet[1])
+if ($is_dual)
 {
-	$Representation = $xml->Period->AdaptationSet[1]->Representation;
-	$Representation_attr = $Representation->attributes();
-
-	$data['ua'] = (string)$Representation->BaseURL;
-	$data['ca'] = (string)$Representation_attr['codecs'];
-
-	$initialization = $xml->Period->AdaptationSet[1]->Representation->SegmentList->Initialization;
-	$initialization_attr = $initialization->attributes();
-	$data['ia'] = (string)$initialization_attr['range'];
-
-	$data['sa'] = array();
-	$segments = $xml->Period->AdaptationSet[1]->Representation->SegmentList->SegmentURL;
-	foreach($segments as $segment_item) {
-		$segment_item_attr = $segment_item->attributes();
-		array_push($data['sa'], array(
-			'r' => (string)$segment_item_attr['mediaRange'],
-			'd' => null,
-			'h' => null
-		));
-	}
-
-	$i = 0;
-	$timeline = $xml->Period->AdaptationSet[1]->SegmentList->SegmentTimeline->S;
-	foreach($timeline as $timeline_item) {
-		$timeline_item_attr = $timeline_item->attributes();
-		$duration = (int)$timeline_item_attr['d'];
-		$repeat = $timeline_item_attr['r'];
-		$data['sa'][$i]['d'] = $duration;
-		$i++;
-		if ($repeat)
-		{
-			for ($j = 0; $j < $repeat; $j++) {
-				$data['sa'][$i]['d'] = $duration;
-				$i++;
-			}
-		}
-	}
-	
-	// Определяем путь к отфрагментированному .mp4-файлу:
-	$mp4fragmented_path = str_replace("dash-dual.mpd", "", $mpd_path) . "track2_dashinit.mp4";
-	
-	// хеш аудио
-	$handle = fopen($mp4fragmented_path, "rb");
-	$data['iha'] = hash_segment($handle, $data['ia']);
-	echo ("hash Audio ".$data['iha']."\n");
-	for ($i = 0; $i < count($data['sa']); $i++) {
-		$data['sa'][$i]['h'] = hash_segment($handle, $data['sa'][$i]['r']);
-		echo ("hash: " . $data['sa'][$i]['h'] . "  \n");
-	}
-	fclose($handle);
+	parse_data(1, $mp4fragmented_path_audio, array(
+		'u' => 'ua',
+		'c' => 'ca',
+		'ir' => 'ira',
+		'ih' => 'iha',
+		's' => 'sa',
+	));
 }
 
 //echo ("DATA: ". json_encode($data) ."\n");
@@ -227,7 +200,6 @@ else
 //unlink($mpd_path);
 
 echo("--- Finish ------------------- \n\n");
-
 ?>
 
 

@@ -76,11 +76,11 @@
 			// video data
 			file = '/video/' + config.data.uv;
 			codecs = config.data.cv;
-			initializationVideo = config.data.iv;
+			initializationVideo = config.data.irv;
 			initializationVideoHash = config.data.ihv;
 			segmentsVideoCount = config.data.sv.length;
 
-			segments.push({t: 'v', r: config.data.iv, h: config.data.ihv});
+			segments.push({t: 'v', r: config.data.irv, h: config.data.ihv});
 
 			(config.data.sv).forEach(function(segmentItem) {
 				durationsVideo.push(parseInt(segmentItem.d)/1000);
@@ -93,17 +93,17 @@
 			}
 			
 			// audio data
-			isDualTracks = !!data.ia;
+			isDualTracks = !!data.ira;
 			if (isDualTracks)
 			{
 				console.log('AAA isDualTracks ');
 				fileAudio = '/video/' + config.data.ua;
 				codecsAudio = config.data.ca;
-				initializationAudio = config.data.ia;
+				initializationAudio = config.data.ira;
 				initializationAudioHash = config.data.iha;
 				segmentsAudioCount = config.data.sa.length;
 				
-				segments.push({t: 'a', r: config.data.ia, h: config.data.iha});
+				segments.push({t: 'a', r: config.data.ira, h: config.data.iha});
 				
 				(config.data.sa).forEach(function(segmentItem) {
 					durationsAudio.push(parseInt(segmentItem.d)/1000);
