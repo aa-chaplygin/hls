@@ -127,7 +127,7 @@ var Manager = (function() {
 					xhr.send();
 					
 					xhr.addEventListener("readystatechange", function () {
-						if (xhr.readyState == xhr.DONE /*&& xhr.status == 200 && xhr.response != null*/) { // wait for video to load
+						if (xhr.readyState == xhr.DONE && xhr.response != null /*&& xhr.status == 200*/) { // wait for video data to load
 							var dataSegment = new Uint8Array(xhr.response);
 
 							/*

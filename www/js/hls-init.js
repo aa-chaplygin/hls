@@ -8,10 +8,7 @@ window.onload = function()
 		// Elements
 		var videoElement = document.getElementById('myVideo');
 
-		// Start loading dat:
-		getDataJSON(datUrl);
-
-		// Gets the dat file and parses it    
+		// Gets json-data from the .dat file and run hls:    
 		function getDataJSON(url) {
 			if (url !== "") {
 				var xhr = new XMLHttpRequest(); // Set up xhr request
@@ -42,6 +39,9 @@ window.onload = function()
 				}
 			}
 		}
+
+		// Start loading dat:
+		getDataJSON(datUrl);
 
 		// Принудительный seek в проблемное место:
 		document.getElementById('seek-div').addEventListener('click', function (e) {

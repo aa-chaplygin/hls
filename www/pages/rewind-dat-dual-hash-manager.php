@@ -13,10 +13,18 @@
 	<script src="/js/jquery.hls-mpd.js"></script>
 	<script src="/js/jquery.hls-m4s.js"></script>
 	<script src="/js/manager/hash-manager.js"></script>
-	<? // Передача параметров от PHP-скриптов пожатым JS-скриптам ?>
+	
+	<?
+		$test_file = 'toystory_dash.dat';
+		$filename = (isset($_GET['file'])) ? $_GET['file'] : $test_file;
+		chdir('../video/');
+		$filename = (file_exists($filename)) ? $filename : $test_file;
+	?>
+	
+	<!-- Передача параметров от PHP-скриптов пожатым JS-скриптам -->
 	<script type="text/javascript">
 		window.HLS_GLOBALS = {
-			file_dat: '/video/' + '<?=$_GET['file']?>'
+			file_dat: '/video/<?=$filename ?>'
 			}
 		/*
 		range

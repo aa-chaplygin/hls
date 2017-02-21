@@ -26,14 +26,17 @@
 			<li><a href="pages/storage.html">Тестирование STORAGE</a></li>
 			<li><a href="pages/mp4box.html">Тестирование MP4box.js</a></li>
 			*/ ?>
+			<h2>Тестирование файлов DAT(JSON) с запросами через hash MANAGER</h2>
 			<li>
-				<h2>Тестирование файлов DAT(JSON) с запросами через hash MANAGER</h2>
 				<ul>
+					<div>Range</div>
 					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=monaco_dash.dat">RANGE длинный файл - monaco_dash.dat</a></li>
 					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=toystory_dash.dat">RANGE - toystory_dash.dat</a></li>
 					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=toystory_dash-dual.dat">RANGE dual - toystory_dash-dual.dat</a></li>
+					<div>M4S</div>
 					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=test-manifest-toystory.dat">M4S - test-manifest-toystory.dat</a></li>
 					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=test-manifest-toystory-dual.dat">M4S dual - test-manifest-toystory-dual.dat</a></li>
+					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=manifest-toystory.dat">M4S - manifest-toystory.dat</a></li>
 				</ul>
 			</li>
 		</ul>

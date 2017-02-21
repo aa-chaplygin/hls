@@ -17,8 +17,8 @@
           value="2"/>
       <SegmentTemplate
           timescale="30000"
-		  media="http://hls.dev/video/output/$RepresentationID$/seg-$Number$.m4s"
-		  initialization="http://hls.dev/video/output/$RepresentationID$/init.mp4"
+		  media="/video/output/$RepresentationID$/seg-$Number$.m4s"
+		  initialization="/video/output/$RepresentationID$/init.mp4"
           startNumber="1">
         <SegmentTimeline>  
 		  <S d="311311"/>
