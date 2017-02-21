@@ -7,7 +7,66 @@ chdir('../video/');
 //$mpd_path = "manifest-toystory-comby.mpd";
 
 //$mpd_path = "test-manifest-toystory.mpd";
-//$mpd_path = "test-manifest-toystory-dual.mpd";
+$mpd_path = "test-manifest-toystory-dual.mpd";
+
+function parse_data($n, $fn)
+{
+	global $data, $xml;
+	
+	$SegmentTemplate = $xml->Period->AdaptationSet[$n]->SegmentTemplate;
+	$SegmentTemplate_attr = $SegmentTemplate->attributes();
+	$Representation = $xml->Period->AdaptationSet[$n]->Representation;
+	$Representation_attr = $Representation->attributes();
+	
+	if ($n == 0)
+	{
+		$data['t'] = (string)$Representation_attr['mimeType'];
+		$data['m'] = (string)$SegmentTemplate_attr['media'];
+		$data['i'] = (string)$SegmentTemplate_attr['initialization'];
+	}
+	
+	$data[$fn['rid']] = (string)$Representation_attr['id'];
+	$data[$fn['c']] = (string)$Representation_attr['codecs'];
+	$data[$fn['sn']] = (int)$SegmentTemplate_attr['startNumber'];
+	$timescale = (string)$SegmentTemplate_attr['timescale']/1000;
+
+	$data[$fn['s']] = array();
+	$timeline = $xml->Period->AdaptationSet[$n]->SegmentTemplate->SegmentTimeline->S;
+	foreach($timeline as $timeline_item) {
+		$timeline_item_attr = $timeline_item->attributes();
+		$duration = (int)($timeline_item_attr['d']/$timescale);
+		$repeat = $timeline_item_attr['r'];
+		array_push($data[$fn['s']], array(
+			'd' => $duration,
+			'h' => null
+		));
+
+		if ($repeat)
+		{
+			for ($j = 0; $j < $repeat; $j++) {
+				array_push($data[$fn['s']], array(
+					'd' => $duration,
+					'h' => null
+				));
+			}
+		}
+	}
+
+	// хеш init
+	$path_segment = str_replace("\$RepresentationID\$", $data[$fn['rid']], $data['i']);
+	$data[$fn['ih']] = hash_segment($path_segment);
+	echo ("hash Video init1: ".$data[$fn['ih']]."\n");
+
+	// хеш сегментов
+	echo ("hash Video "."\n");
+	for ($i = 0; $i < count($data[$fn['s']]); $i++) {
+		$path_segment = str_replace("\$Number\$", $i+$data[$fn['sn']], $data['m']);
+		$path_segment = str_replace("\$RepresentationID\$", $data[$fn['rid']], $path_segment);
+		$data[$fn['s']][$i]['h'] = hash_segment($path_segment);
+		//echo ("hash i = ". $i." ". $data[$fn['s']][$i]['h'] ."\n");
+	}
+	
+}
 
 // Хеширование удаленного файла
 function hash_segment($path)
@@ -76,105 +135,24 @@ $data = array();
 $xml = simplexml_load_file($mpd_path);
 
 // Логика для видео-дорожек
-$SegmentTemplate = $xml->Period->AdaptationSet[0]->SegmentTemplate;
-$SegmentTemplate_attr = $SegmentTemplate->attributes();
-$Representation = $xml->Period->AdaptationSet[0]->Representation;
-$Representation_attr = $Representation->attributes();
-
-$data['t'] = (string)$Representation_attr['mimeType'];
-$data['m'] = (string)$SegmentTemplate_attr['media'];
-$data['i'] = (string)$SegmentTemplate_attr['initialization'];
-
-$data['vrid'] = (string)$Representation_attr['id'];
-$data['cv'] = (string)$Representation_attr['codecs'];
-$data['snv'] = (int)$SegmentTemplate_attr['startNumber'];
-$timescale_video = (string)$SegmentTemplate_attr['timescale']/1000;
-
-// хеш init
-$path_segment = str_replace("\$RepresentationID\$", $data['vrid'], $data['i']);
-$data['ihv'] = hash_segment($path_segment);
-echo ("hash Video init1: ".$data['ihv']."\n");
-
-$data['sv'] = array();
-$timeline = $xml->Period->AdaptationSet[0]->SegmentTemplate->SegmentTimeline->S;
-foreach($timeline as $timeline_item) {
-	$timeline_item_attr = $timeline_item->attributes();
-	$duration = (int)($timeline_item_attr['d']/$timescale_video);
-	$repeat = $timeline_item_attr['r'];
-	array_push($data['sv'], array(
-		'd' => $duration,
-		'h' => null
-	));
-	
-	if ($repeat)
-	{
-		for ($j = 0; $j < $repeat; $j++) {
-			array_push($data['sv'], array(
-				'd' => $duration,
-				'h' => null
-			));
-		}
-	}
-}
-
-// хеш сегментов
-echo ("hash Video "."\n");
-for ($i = 0; $i < count($data['sv']); $i++) {
-	$path_segment = str_replace("\$Number\$", $i+$data['snv'], $data['m']);
-	$path_segment = str_replace("\$RepresentationID\$", $data['vrid'], $path_segment);
-	$data['sv'][$i]['h'] = hash_segment($path_segment);
-	//echo ("hash i = ". $i." ". $data['sv'][$i]['h'] ."\n");
-}
+parse_data(0, array(
+	'rid' => 'vrid',
+	'c' => 'cv',
+	'sn' => 'snv',
+	's' => 'sv',
+	'ih' => 'ihv',
+));
 
 // Логика для аудио-дорожек
 if ($xml->Period->AdaptationSet[1])
 {
-	$SegmentAudioTemplate = $xml->Period->AdaptationSet[1]->SegmentTemplate;
-	$SegmentAudioTemplate_attr = $SegmentAudioTemplate->attributes();
-	$RepresentationAudio = $xml->Period->AdaptationSet[1]->Representation;
-	$RepresentationAudio_attr = $RepresentationAudio->attributes();
-	
-	$data['arid'] = (string)$RepresentationAudio_attr['id'];
-	$data['ca'] = (string)$RepresentationAudio_attr['codecs'];
-	$data['sna'] = (int)$SegmentAudioTemplate_attr['startNumber'];
-	$timescale_audio = (string)$SegmentAudioTemplate_attr['timescale']/1000;
-	
-	// хеш init
-	$path_segment = str_replace("\$RepresentationID\$", $data['arid'], $data['i']);
-	$data['iha'] = hash_segment($path_segment);
-	echo ("hash Video init: ".$data['iha']."\n");
-	
-	$data['sa'] = array();
-	$timelineAudio = $xml->Period->AdaptationSet[1]->SegmentTemplate->SegmentTimeline->S;
-	foreach($timelineAudio as $timeline_item) {
-		$timeline_item_attr = $timeline_item->attributes();
-		$duration = (int)($timeline_item_attr['d']/$timescale_audio);
-		$repeat = $timeline_item_attr['r'];
-		array_push($data['sa'], array(
-			'd' => $duration,
-			'h' => null
-		));
-		
-		if ($repeat)
-		{
-			for ($j = 0; $j < $repeat; $j++) {
-				array_push($data['sa'], array(
-					'd' => $duration,
-					'h' => null
-				));
-			}
-		}
-	}
-	
-	// хеш сегментов
-	echo ("hash Audio "."\n");
-	for ($i = 0; $i < count($data['sa']); $i++) {
-		$path_segment = str_replace("\$Number\$", $i+$data['sna'], $data['m']);
-		$path_segment = str_replace("\$RepresentationID\$", $data['arid'], $path_segment);
-		$data['sa'][$i]['h'] = hash_segment($path_segment);
-		//echo ("hash i = ". $i." ". $data['sa'][$i]['h'] ."\n");
-	}
-	
+	parse_data(1, array(
+		'rid' => 'arid',
+		'c' => 'ca',
+		'sn' => 'sna',
+		's' => 'sa',
+		'ih' => 'iha',
+	));
 }
 
 //echo ("DATA: ". json_encode($data) ."\n");

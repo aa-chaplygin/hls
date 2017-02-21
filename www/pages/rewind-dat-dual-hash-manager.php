@@ -18,20 +18,20 @@
 		window.HLS_GLOBALS = {
 			file_dat: '/video/' + '<?=$_GET['file']?>'
 			}
-		
-		// range
-		//var datUrl = '/video/toystory_dash.dat';
-		//var datUrl = '/video/toystory_dash-dual.dat';
-		//var datUrl = '/video/monaco_dash.dat';
+		/*
+		range
+		toystory_dash.dat
+		toystory_dash-dual.dat
+		monaco_dash.dat
 
-		// m4s
-		//var datUrl = '/video/manifest-toystory-dual.dat';
-		//var datUrl = '/video/manifest-toystory.dat';
+		m4s
+		manifest-toystory-dual.dat
+		manifest-toystory.dat
 
-		// test m4s локальные файлы
-		//var datUrl = '/video/test-manifest-toystory-dual.dat';
-		//var datUrl = '/video/test-manifest-toystory.dat';
-
+		test m4s локальные файлы
+		test-manifest-toystory-dual.dat
+		test-manifest-toystory.dat
+		*/
 			
 	</script>
 </head>

@@ -1,10 +1,6 @@
 window.onload = function()
 {
 	(function() {
-		'use strict'
-
-
-		console.log('AAA hls-init');
 
 		// Url for .dat file
 		var datUrl = window.HLS_GLOBALS.file_dat;
