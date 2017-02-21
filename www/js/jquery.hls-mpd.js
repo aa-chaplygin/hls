@@ -13,9 +13,9 @@
 		config.$context = $elements;
 		
 		// Global Parameters from .mpd file
-		var type;  // Type of file
-		var file;  // MP4 file
-		var fileAudio;  // MP4 file
+		var type;		// Type of file
+		var file;		// MP4 file
+		var fileAudio;	// MP4 file
 		var codecs;
 		var codecsAudio;
 		

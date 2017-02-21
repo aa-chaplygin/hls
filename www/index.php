@@ -9,6 +9,7 @@
 	<body>
 		
 		<ul>
+			<? /*
 			<li><a href="pages/video.html">Обычное видео в теге video</a></li>
 			<li><a href="pages/blob.html">Видео напрямую из объекта blob</a></li>
 			<li><a href="pages/hls.html">Видео HLS</a></li>
@@ -19,12 +20,21 @@
 			<li><a href="pages/rewind-mpd-dat-hash.html">Тестирование перемотки MPD DAT(JSON) hash</a></li>
 			<li><a href="pages/rewind-m4s.html">Тестирование перемотки M4S</a></li>
 			<li><a href="pages/rewind-dat-hash-manager.html">Тестирование перемотки DAT(JSON) hash MANAGER</a></li>
-			<li><a href="pages/rewind-dat-dual-hash-manager.html">Тестирование перемотки DAT(JSON) DUAL hash MANAGER</a></li>
 			<li><a href="pages/rewind-fetch.html">Тестирование Fetch-API</a></li>
 			<li><a href="pages/storage.html">Тестирование STORAGE</a></li>
 			<li><a href="pages/mp4box.html">Тестирование MP4box.js</a></li>
+			*/ ?>
+			<li>
+				<h2>Тестирование файлов DAT(JSON) hash MANAGER</h2>
+				<ul>
+					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=monaco_dash.dat">RANGE - monaco_dash.dat</a></li>
+					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=toystory_dash.dat">RANGE - toystory_dash.dat</a></li>
+					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=toystory_dash-dual.dat">RANGE dual - toystory_dash-dual.dat</a></li>
+					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=test-manifest-toystory.dat">M4S - test-manifest-toystory.dat</a></li>
+					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=test-manifest-toystory-dual.dat">M4S dual - test-manifest-toystory-dual.dat</a></li>
+				</ul>
+			</li>
 		</ul>
 		
 	</body>
 </html>
-

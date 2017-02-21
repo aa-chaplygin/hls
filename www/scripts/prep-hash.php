@@ -1,10 +1,9 @@
 <?php
-
 // Подключаем библиотеку для определения метаданных видео:
 include_once('getid3/getid3.php');
 $getID3 = new getID3;
 
-function parse_data($n, $mp4fragmented_path, $fn)
+function parse_data($n, $fn)
 {
 	global $data, $xml;
 	
@@ -17,7 +16,7 @@ function parse_data($n, $mp4fragmented_path, $fn)
 	}
 	$data[$fn['u']] = (string)$Representation->BaseURL;
 	$data[$fn['c']] = (string)$Representation_attr['codecs'];
-
+	
 	$initialization = $xml->Period->AdaptationSet[$n]->Representation->SegmentList->Initialization;
 	$initialization_attr = $initialization->attributes();
 	$data[$fn['ir']] = (string)$initialization_attr['range'];
@@ -49,14 +48,15 @@ function parse_data($n, $mp4fragmented_path, $fn)
 			}
 		}
 	}
-	
+			
 	// хеш сегментов
+	$mp4fragmented_path = $data[$fn['u']];
 	$handle = fopen($mp4fragmented_path, "rb");
 	$data[$fn['ih']] = hash_segment($handle, $data[$fn['ir']]);
 	echo ("hash Video ".$data[$fn['ih']]."\n");
 	for ($i = 0; $i < count($data[$fn['s']]); $i++) {
 		$data[$fn['s']][$i]['h'] = hash_segment($handle, $data[$fn['s']][$i]['r']);
-		echo ("hash: " . $data[$fn['s']][$i]['h'] . "  \n");
+		//echo ("hash: " . $data[$fn['s']][$i]['h'] . "  \n");
 	}
 	fclose($handle);
 }
@@ -90,10 +90,10 @@ function hash_segment($h, $r)
 
 echo("--- Start ------------------- \n\n");
 
-chdir('../video/');
+// Типа разбивки на сегменты
+$is_dual = false; // true - разбивка с разделением на дорожки
 
-// Типа разбивки
-$is_dual = true; // true - разбивка на дорожки
+chdir('../video/');
 
 $file_path = isset($argv[1]) ? $argv[1] : 'toystory.mp4';
 $segment_size = isset($argv[2]) ? $argv[2] : 3;
@@ -147,19 +147,8 @@ if (strpos($str, "\"\n"))
 $data = array();
 $xml = simplexml_load_file($mpd_path);
 
-// Определяем путь к отфрагментированному .mp4-файлу:
-if ($is_dual)
-{
-	$mp4fragmented_path_video = str_replace("dash-dual.mpd", "", $mpd_path) . "track1_dashinit.mp4";
-	$mp4fragmented_path_audio = str_replace("dash-dual.mpd", "", $mpd_path) . "track2_dashinit.mp4";
-}
-else
-{
-	$mp4fragmented_path_video = str_replace("dash.mpd", "", $mpd_path) . "dashinit.mp4";
-}
-
 // Логика для видео-дорожек
-parse_data(0, $mp4fragmented_path_video, array(
+parse_data(0, array(
 	'u' => 'uv',
 	'c' => 'cv',
 	'ir' => 'irv',
@@ -170,7 +159,7 @@ parse_data(0, $mp4fragmented_path_video, array(
 // Логика для аудио-дорожек
 if ($is_dual)
 {
-	parse_data(1, $mp4fragmented_path_audio, array(
+	parse_data(1, array(
 		'u' => 'ua',
 		'c' => 'ca',
 		'ir' => 'ira',

@@ -1,50 +1,16 @@
-<!DOCTYPE html>
-<html>
-<!-- Media streaming example
-  Reads an .mpd file created using mp4box and plays the file
--->     
-<head>
-  <meta charset="utf-8" />
-  <title>Media streaming example</title>
-  <script src="/js/jquery-1.10.2.min.js"></script>
-  <script src="/js/jquery.hls-mpd.js"></script>
-  <script src="/js/jquery.hls-m4s.js"></script>
-  <script src="/js/underscore-min.js"></script>
-  <script src="/js/hash/hash-md5.js"></script>
-  <script src="/js/manager/hash-manager.js"></script>
-</head>
-
-<body>
-	
-	<h2>rewind</h2>
-	<div id="grid">
-		<video id="myVideo" width="640" height="360" controls>No video available</video>
-	</div>
-	<div id="seek-div" style="cursor: pointer; margin-top: 4px">[seek->]</div>
-
-	<!-- script section -->
-	<script>
-
+window.onload = function()
+{
 	(function() {
 		'use strict'
 
+
+		console.log('AAA hls-init');
+
 		// Url for .dat file
-		// range
-		//var datUrl = '/video/toystory_dash.dat';
-		var datUrl = '/video/toystory_dash-dual.dat';
-		//var datUrl = '/video/monaco_dash.dat';
-		
-		// m4s
-		//var datUrl = '/video/manifest-toystory-dual.dat';
-		//var datUrl = '/video/manifest-toystory.dat';
-		
-		// test m4s локальные файлы
-		//var datUrl = '/video/test-manifest-toystory-dual.dat';
-		//var datUrl = '/video/test-manifest-toystory.dat';
+		var datUrl = window.HLS_GLOBALS.file_dat;
 
 		// Elements
 		var videoElement = document.getElementById('myVideo');
-		
 
 		// Start loading dat:
 		getDataJSON(datUrl);
@@ -60,7 +26,7 @@
 				xhr.onreadystatechange = function () {
 					if (xhr.readyState == xhr.DONE) {
 						var tempoutput = xhr.response;
-						
+
 						if (typeof(tempoutput) == 'string') {
 							tempoutput = JSON.parse(tempoutput);
 						}
@@ -80,17 +46,15 @@
 				}
 			}
 		}
-		
+
 		// Принудительный seek в проблемное место:
 		document.getElementById('seek-div').addEventListener('click', function (e) {
 			console.log('AAA SEEK');
 			videoElement.currentTime = 50;
 			//videoElement.pause();
 		});	
-		
-		
+
 	})();
-	</script>
-  
-</body>
-</html>
+
+}
+
