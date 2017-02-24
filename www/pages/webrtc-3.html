@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<title>WebRTC example</title>
+	<script src="/js/jquery-1.10.2.min.js"></script>
+	<script src="/js/peer.js"></script>
+	<script src="/js/script-3.js"></script>
+</head>
+
+<body>
+	
+	<h2>WebRTC</h2>
+	
+	<div class="peer-reg" id="1">peer 1</div>
+	<div class="peer-reg" id="2">peer 2</div>
+	<br />
+	<br />
+	
+	
+	<div id="actions">
+		<b>Your PeerJS ID is</b> <span id="pid"></span>
+		<br />
+		<b>Connect to a peer:</b>
+		<input type="text" id="rid" placeholder="Someone else's id">
+		<input class="button" type="button" value="Connect" id="connect">
+		<br />
+		<br />
+		<form id="send">
+			<input type="text" id="text" placeholder="Enter message"><input class="button" type="submit" value="Send to selected peers">
+		</form>
+		<button id="close">Close selected connections</button>
+	</div>
+	
+	<div id="wrap" style="margin-top: 20px;">
+		<div id="connections">
+			<span class="filler">У вас нет созданных соединений</span>
+		</div>
+	</div>
+
+	<div id="box" style="margin-top: 20px; border: 1px solid green; text-align: center; height: 100px; width: 400px;">
+		Drag file here to send to active connections.
+	</div>
+	
+	<div id="send-data">Send data</div>
+	
+</body>
+</html>

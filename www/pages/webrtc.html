@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<!-- Media streaming example
+  Reads an .mpd file created using mp4box and plays the file
+-->     
+<head>
+	<meta charset="utf-8" />
+	<title>WebRTC example</title>
+</head>
+
+<body>
+	
+	<h2>WebRTC</h2>
+	
+	<div id="grid">
+		<video id="video" width="640" height="360" autoplay controls>No video available</video>
+	</div>
+	
+	
+	<script type="text/javascript">
+		/*
+		var getUserMedia;
+		
+		var browserUserMedia =	navigator.webkitGetUserMedia	||	// WebKit
+								navigator.mozGetUserMedia	||	// Mozilla FireFox
+								navigator.getUserMedia;		
+								
+		console.log('AAA browserUserMedia = ', browserUserMedia);
+		if (!browserUserMedia ) throw 'Your browser doesn\'t support WebRTC';
+
+		getUserMedia = browserUserMedia.bind(navigator);
+		
+		getUserMedia(
+			{
+				"audio": true,
+				"video": true
+			},
+			function(stream) {
+				console.log('AAA stream: ', stream);
+				var videoElement = document.getElementById('video');
+				videoElement.src = URL.createObjectURL(stream);
+			},
+			function(err) {
+				console.log('AAA err: ', err);
+			}
+		);
+		*/
+		
+		
+		// объявим глобальную переменную для медиапотока:
+		var localStream = null;
+		
+		// Запрашиваем доступ и к аудио, и к видео:
+		var streamConstraints = { "audio": true, "video": true };
+		
+		// 
+		function getUserMedia_success(stream) {
+			console.log("getUserMedia_success():", stream);
+			localVideo1.src = URL.createObjectURL(stream); // Подключаем медиапоток к HTML-элементу <video>
+			localStream = stream; // и сохраняем в глобальной переменной для дальнейшего использования
+		}
+		
+		//
+		function getUserMedia_error(error) {
+			console.log("getUserMedia_error():", error);
+		}
+		
+		function getUserMedia_click() {
+			console.log("getUserMedia_click()");
+			navigator.webkitGetUserMedia(
+				streamConstraints,
+				getUserMedia_success,
+				getUserMedia_error
+			);
+		}
+		
+		getUserMedia_click();
+		
+		
+	</script>
+</body>
+</html>
