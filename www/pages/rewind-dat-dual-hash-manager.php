@@ -13,6 +13,7 @@
 	<script src="/js/jquery.hls-mpd.js"></script>
 	<script src="/js/jquery.hls-m4s.js"></script>
 	<? if (isset($_GET['client'])) { ?>
+	<script src="/js/peer.js"></script>
 	<script src="/js/manager/hash-manager-peer.js"></script>
 	<? } else { ?>
 	<script src="/js/manager/hash-manager.js"></script>
@@ -55,12 +56,11 @@
 </head>
 
 <body>
-	
 	<h2>rewind</h2>
 	<div id="grid">
 		<video id="myVideo" width="640" height="360" controls>No video available</video>
 	</div>
 	<div id="seek-div" style="cursor: pointer; margin-top: 4px">[seek->]</div>
-  
+	<b>Your PeerJS ID is</b> <span id="pid"></span>
 </body>
 </html>

@@ -5,7 +5,6 @@ $(document).ready(function() {
 	var remoteClientID = (clientID == 1) ? '222asdasdasd' : '111asdasdasd';
 	
 	var peer;
-	var connectedPeers = {};
 	
 	// Регистрируем свой peer
 	var keyID = localClientID;
@@ -67,7 +66,7 @@ $(document).ready(function() {
 				if (data.type == 'request')
 				{
 					console.log('AAA получили запрос на id: ', data.id);
-					var peerId = (peer.id == "111asdasdasd") ? "222asdasdasd" : "111asdasdasd";
+					var peerId = remoteClientID;
 					var conns = peer.connections[peerId];
 					var conn = conns[0];
 					var dataResponse = {
@@ -86,7 +85,7 @@ $(document).ready(function() {
 					console.log('AAA получили ответ на id: ', data.data);
 					
 					// Закрываем соединение
-					var peerId = (peer.id == "111asdasdasd") ? "222asdasdasd" : "111asdasdasd";
+					var peerId = remoteClientID;
 					var conns = peer.connections[peerId];
 					var conn = conns[0];
 					console.log('AAA Закрываем соединение conn = ', conn);
@@ -95,7 +94,6 @@ $(document).ready(function() {
 
 			});
 		}
-		connectedPeers[c.peer] = 1;
 	}
 	
 	// Make sure things clean up properly.
