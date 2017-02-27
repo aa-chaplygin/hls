@@ -204,7 +204,6 @@ $(document).ready(function() {
    
 	// Отправка данных
 	$('#send-data').click(function() {
-		
 		/*
 		eachActiveConnection(function(c, $c) {
 			console.log('AAA eachActiveConnection');
@@ -218,7 +217,6 @@ $(document).ready(function() {
 			}
 		});
 		*/
-	   
 		var peerId = (peer.id == "111asdasdasd") ? "222asdasdasd" : "111asdasdasd";
 		var conns = peer.connections[peerId];
 		var conn = conns[0];
@@ -305,7 +303,6 @@ $(document).ready(function() {
 						}
 					});
 					*/
-				   
 					var peerId = (peer.id == "111asdasdasd") ? "222asdasdasd" : "111asdasdasd";
 					var conns = peer.connections[peerId];
 					var conn = conns[0];
@@ -329,8 +326,6 @@ $(document).ready(function() {
 		}
 		connectedPeers[c.peer] = 1;
 	}
-
-	
 
 	// Goes through each active peer and calls FN on its connections.
 	function eachActiveConnection(fn) {

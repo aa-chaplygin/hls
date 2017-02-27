@@ -12,7 +12,12 @@
 	<script src="/js/hls-init.js"></script>
 	<script src="/js/jquery.hls-mpd.js"></script>
 	<script src="/js/jquery.hls-m4s.js"></script>
+	<? if (isset($_GET['client'])) { ?>
+	<script src="/js/manager/hash-manager-peer.js"></script>
+	<? } else { ?>
 	<script src="/js/manager/hash-manager.js"></script>
+	<? } ?>
+	
 	
 	<?
 		$test_file = 'toystory_dash.dat';
@@ -23,6 +28,11 @@
 	
 	<!-- Передача параметров от PHP-скриптов пожатым JS-скриптам -->
 	<script type="text/javascript">
+		
+		window.WebRTC_GLOBALS = {
+			client_id: '<?=$_GET['client'] ?>'
+			}
+		
 		window.HLS_GLOBALS = {
 			file_dat: '/video/<?=$filename ?>'
 			}

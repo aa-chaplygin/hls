@@ -43,12 +43,18 @@
 					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=test-manifest-toystory.dat">M4S удалённый файл, одна дорожка - test-manifest-toystory.dat</a></li>
 					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=test-manifest-toystory-dual.dat">M4S локальный файл, две дорожки - test-manifest-toystory-dual.dat</a></li>
 					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=manifest-toystory.dat">M4S локальный файл, одна дорожка - manifest-toystory.dat</a></li>
+					<div>использование PeerJS</div>
+					<li><a href="pages/rewind-dat-dual-hash-manager.php?client=1">Client 1 - RANGE одна дорожка - toystory_dash.dat</a></li>
+					<li><a href="pages/rewind-dat-dual-hash-manager.php?client=2">Client 2 - RANGE одна дорожка - toystory_dash.dat</a></li>
 				</ul>
 			</li>
 			<h2>Тестирование WebRTC</h2>
 			<li><a href="pages/webrtc.html">Тестирование WebRTC</a></li>
+			<h2>Тестирование PeerJS</h2>
 			<li><a href="pages/webrtc-2.html">Hello, world</a></li>
-			<li><a href="pages/webrtc-3.html">Chat</a></li>
+			<li><a href="pages/webrtc-chat.html">Chat</a></li>
+			<li><a href="pages/webrtc-data.php?client=1">data-client-1</a></li>
+			<li><a href="pages/webrtc-data.php?client=2">data-client-2</a></li>
 		</ul>
 		
 	</body>
