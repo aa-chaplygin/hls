@@ -20,6 +20,7 @@ var Manager = (function() {
 		fieldName	= "hash",
 	
 		peer,
+		connectedPeers = {},
 		localClientID,
 		remoteClientID;
 	
@@ -98,24 +99,28 @@ var Manager = (function() {
 	function getSegment(hashValue, callback)
 	{
 		console.log('AAA MMM getSegment = ', hashValue);
+		//if (hashValue == '1baa160a7645ffe7496d118bf8d9452a' || hashValue == '6df1da140fea9152364cf00629c15488')
 		if (hashValue == '1baa160a7645ffe7496d118bf8d9452a')
 		{
-			console.log('AAA вытаскиваем из Peer');
+			console.log('AAA --->>> вытаскиваем из Peer');
 			var requestedPeer = remoteClientID;
-			console.log('AAA  Устанавливаем соединение для передачи данных c ', requestedPeer);
 			
+			console.log('AAA  Устанавливаем соединение для передачи данных c ', requestedPeer);
+
 			// Соединение для передачи данных.
-			var d = peer.connect(requestedPeer, {
+			var dataConnection = peer.connect(requestedPeer, {
 				label: 'data',
 				reliable: true
 			});
-			d.on('open', function() {
+			dataConnection.on('open', function() {
+				//console.log('AAA d = ', dataConnection.id);
+				console.log('AAA conns = ', peer.connections);
 
 				// Отправляем данные
 				var peerId = remoteClientID;
 				console.log('AAA  Отправляем запрос на данные клиенту: ', peerId);
 				var conns = peer.connections[peerId];
-				var conn = conns[0];
+				var conn = conns[conns.length-1];
 				var dataRequest = {
 						type: 'request',
 						id: '123',
@@ -127,28 +132,37 @@ var Manager = (function() {
 				}
 
 			});
-			d.on('data', function(data) {
-				console.log('AAA data d ', data.type);
+			dataConnection.on('data', function(data) {
+				console.log('AAA dataConnection ', data.type);
 				if (data.type == 'response')
 				{
 					console.log('AAA получили ответ от id: ', data.clientID, ' на hashValue: ', data.hashValue);
-					console.log('AAA Закрываем соединение с id: ', data.clientID);
+					console.log('AAA Закрываем соединение с id: --> ', data.clientID);
+					console.log('AAA peer.connections: --> ', peer.connections);
+
 					// Закрываем соединение
 					var peerId = data.clientID;
 					var conns = peer.connections[peerId];
-					var conn = conns[0];
+					var conn = conns[conns.length-1];
 					conn.close();
-					
+
 					console.log('AAA полученные данные: ', data.data);
 					var dataSegment = data.data;
 					if ($.isFunction(callback))
 					{
 						callback(dataSegment);
 					}
-					
+
 				}
 			});
-			d.on('error', function(err) { alert(err); });
+			dataConnection.on('error', function(err) {
+				console.log('AAA dataConnection.error ', err);
+			});
+			dataConnection.on('close', function() {
+				console.log('AAA dataConnection.close ', dataConnection);
+				delete peer.connections[dataConnection.peer];
+			});
+			
 		}
 		else
 		{
@@ -256,7 +270,6 @@ var Manager = (function() {
 				console.log('AAA requestDB error ', event);
 			}
 		}
-
 		
 	}
 	
@@ -286,11 +299,13 @@ var Manager = (function() {
 	
 	// Handle a connection object.
 	function connect(c) {
-		console.log('AAA connect: ', c);
+		console.log('AAA -->>-- connect: ', c);
+		console.log('AAA -->>-- peer =  ', peer.connections);
+
+		
 		// Handle a chat connection.
 		if (c.label === 'data') {
 			c.on('data', function(data) {
-
 				if (data.type == 'request')
 				{
 					console.log('AAA получили запрос от ', data.clientID, ' на hashValue: ', data.hashValue);
@@ -306,13 +321,13 @@ var Manager = (function() {
 						segmentsDBItem = requestDB.result;
 						if (segmentsDBItem)
 						{
-							console.log('AAA есть данные в БД ', segmentsDBItem);
+							//console.log('AAA -->> есть данные в БД ', segmentsDBItem);
 							var dataSegment = new Uint8Array(segmentsDBItem.data);
 							
 							// Возвращаем ответ:
 							var peerId = data.clientID;
 							var conns = peer.connections[peerId];
-							var conn = conns[0];
+							var conn = conns[conns.length-1];
 							var dataResponse = {
 									type: 'response',
 									id: data.id,
@@ -333,7 +348,12 @@ var Manager = (function() {
 				}
 				
 			});
+			
+			c.on('close', function() {
+				console.log('AAA dataConnection.close ====>>> ', c);
+			});
 		}
+		
 	}
 	
 	/*
