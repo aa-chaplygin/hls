@@ -12,8 +12,10 @@
 	<script src="/js/hls-init.js"></script>
 	<script src="/js/jquery.hls-mpd.js"></script>
 	<script src="/js/jquery.hls-m4s.js"></script>
+	
 	<? if (isset($_GET['client'])) { ?>
 	<script src="/js/peer.js"></script>
+	<script type="text/javascript" src="/js/jquery.cookie.js"></script>
 	<script src="/js/manager/hash-manager-peer.js"></script>
 	<? } else { ?>
 	<script src="/js/manager/hash-manager.js"></script>
