@@ -15,7 +15,7 @@
 	
 	<? if (isset($_GET['client'])) { ?>
 	<script src="/js/peer.js"></script>
-	<script type="text/javascript" src="/js/jquery.cookie.js"></script>
+	<script src="/js/jquery.cookie.js"></script>
 	<script src="/js/manager/hash-manager-peer.js"></script>
 	<? } else { ?>
 	<script src="/js/manager/hash-manager.js"></script>
@@ -63,6 +63,7 @@
 		<video id="myVideo" width="640" height="360" controls>No video available</video>
 	</div>
 	<div id="seek-div" style="cursor: pointer; margin-top: 4px">[seek->]</div>
+	<div id="peer-div" style="cursor: pointer; margin-top: 4px">[peer->]</div>
 	<b>Your PeerJS ID is</b> <span id="pid"></span>
 </body>
 </html>

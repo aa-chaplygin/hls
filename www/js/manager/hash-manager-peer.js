@@ -62,21 +62,8 @@ var Manager = (function() {
 		localClientID = (clientID == 1) ? localClientName : remoteClientName;
 		remoteClientID = (clientID == 1) ? remoteClientName : localClientName;
 		*/
-	   
-		/*
-		if ($.cookie('hls-peer'))
-		{
-			var dataCookie = $.cookie('hls-peer').split(',');
-			console.log('AAA есть кукис ', typeof (dataCookie));
-		}
-		else
-		{
-			console.log('AAA создаем кукис');
-			var dataCookie = [clientID];
-			$.cookie('hls-peer', dataCookie.join(','));
-		}
-		 */
 	  
+		/*
 		var clientNames = [
 				'111asdasdasd111',
 				'222asdasdasd222',
@@ -85,16 +72,39 @@ var Manager = (function() {
 		localClientID = clientNames[clientID-1];
 		clientNames.splice(clientID-1,1);
 		remoteClientNames =  clientNames;
-		
+		*/
 
 		// Регистрируем свой peer
 		var keyID = localClientID;
-		peer = new Peer(keyID, {key: 'x7fwx2kavpy6tj4i'});
+		//peer = new Peer(keyID, {key: 'x7fwx2kavpy6tj4i'});
+		peer = new Peer({key: 'x7fwx2kavpy6tj4i'});
 
 		// Показываем свой ID.
 		peer.on('open', function(id){
 			console.log('AAA peer.open id: ', id);
 			$('#pid').text(id);
+			
+			localClientID = id;
+			
+			if ($.cookie('hls_peer'))
+			{
+				console.log('AAA есть cookie: ', JSON.parse($.cookie('hls_peer')));
+				var dataCookie = JSON.parse($.cookie('hls_peer'));
+				dataCookie.connectedPeers.push(localClientID);
+				$.cookie('hls_peer', JSON.stringify(dataCookie), { expires: 7});
+			}
+			else
+			{
+				console.log('AAA создаем кукис --', localClientID);
+				var dataCookie = {
+					connectedPeers: []
+				};
+				dataCookie.connectedPeers.push(localClientID);
+				$.cookie('hls_peer', JSON.stringify(dataCookie), { expires: 7});
+			}
+			
+			remoteClientNames =  _.without(dataCookie.connectedPeers, localClientID);
+			
 			// тут отправить пиринг-инфу на сервер
 		});
 
@@ -108,6 +118,11 @@ var Manager = (function() {
 		// Make sure things clean up properly.
 		window.onunload = window.onbeforeunload = function(e) {
 			console.log('AAA window.onunload window.onbeforeunload');
+			// Удаляем peer-кукис
+			var dataCookie = JSON.parse($.cookie('hls_peer'));
+			dataCookie.connectedPeers = _.without(dataCookie.connectedPeers, localClientID);
+			$.cookie('hls_peer', JSON.stringify(dataCookie), { expires: 7});
+			
 			if (!!peer && !peer.destroyed) {
 				peer.destroy();
 			}
