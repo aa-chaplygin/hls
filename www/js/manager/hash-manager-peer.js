@@ -22,7 +22,9 @@ var Manager = (function() {
 		peer,
 		localClientID,
 		remoteClientID,
-		remoteClientNames;
+		remoteClientNames,
+		dataCookie,
+		cookieName = 'hls_peer';
 	
 	function connectDB()
 	{
@@ -86,24 +88,24 @@ var Manager = (function() {
 			
 			localClientID = id;
 			
-			if ($.cookie('hls_peer'))
+			if ($.cookie(cookieName))
 			{
-				console.log('AAA есть cookie: ', JSON.parse($.cookie('hls_peer')));
-				var dataCookie = JSON.parse($.cookie('hls_peer'));
+				console.log('AAA есть cookie: ', JSON.parse($.cookie(cookieName)));
+				dataCookie = JSON.parse($.cookie(cookieName));
 				dataCookie.connectedPeers.push(localClientID);
-				$.cookie('hls_peer', JSON.stringify(dataCookie), { expires: 7});
+				$.cookie(cookieName, JSON.stringify(dataCookie), { expires: 7});
 			}
 			else
 			{
 				console.log('AAA создаем кукис --', localClientID);
-				var dataCookie = {
+				dataCookie = {
 					connectedPeers: []
 				};
 				dataCookie.connectedPeers.push(localClientID);
-				$.cookie('hls_peer', JSON.stringify(dataCookie), { expires: 7});
+				$.cookie(cookieName, JSON.stringify(dataCookie), { expires: 7});
 			}
 			
-			remoteClientNames =  _.without(dataCookie.connectedPeers, localClientID);
+			//remoteClientNames =  _.without(dataCookie.connectedPeers, localClientID);
 			
 			// тут отправить пиринг-инфу на сервер
 		});
@@ -119,9 +121,9 @@ var Manager = (function() {
 		window.onunload = window.onbeforeunload = function(e) {
 			console.log('AAA window.onunload window.onbeforeunload');
 			// Удаляем peer-кукис
-			var dataCookie = JSON.parse($.cookie('hls_peer'));
+			dataCookie = JSON.parse($.cookie(cookieName));
 			dataCookie.connectedPeers = _.without(dataCookie.connectedPeers, localClientID);
-			$.cookie('hls_peer', JSON.stringify(dataCookie), { expires: 7});
+			$.cookie(cookieName, JSON.stringify(dataCookie), { expires: 7});
 			
 			if (!!peer && !peer.destroyed) {
 				peer.destroy();
@@ -142,11 +144,13 @@ var Manager = (function() {
 	{
 		console.log('AAA MMM getSegment = ', hashValue);
 		
+		dataCookie = JSON.parse($.cookie(cookieName));
+		remoteClientNames =  _.without(dataCookie.connectedPeers, localClientID);
+		
 		//if (hashValue == '1baa160a7645ffe7496d118bf8d9452a' || hashValue == '6df1da140fea9152364cf00629c15488')
 		//if (hashValue == '1baa160a7645ffe7496d118bf8d9452a')
-		if (hashValue != '61c85e432083be705ff75a2b10fcd213' && hashValue != '8014b59ef499b499fdd501528d25cada')
+		if (remoteClientNames.length > 0 && hashValue != '61c85e432083be705ff75a2b10fcd213' && hashValue != '8014b59ef499b499fdd501528d25cada')
 		{
-		
 			remoteClientID = remoteClientNames[Math.floor(Math.random() * remoteClientNames.length)];
 			var requestedPeer = remoteClientID;
 			console.log('AAA --->>> Peer Устанавливаем соединение для передачи данных c ', requestedPeer);
