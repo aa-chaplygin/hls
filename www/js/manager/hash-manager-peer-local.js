@@ -56,26 +56,6 @@ var Manager = (function() {
 	
 	function initPeer()
 	{
-		var clientID = window.WebRTC_GLOBALS.client_id;
-		
-		/*
-		var localClientName = '111asdasdasd111';
-		var remoteClientName = '222asdasdasd222';
-		localClientID = (clientID == 1) ? localClientName : remoteClientName;
-		remoteClientID = (clientID == 1) ? remoteClientName : localClientName;
-		*/
-	  
-		/*
-		var clientNames = [
-				'111asdasdasd111',
-				'222asdasdasd222',
-				'333asdasdasd333'
-			];
-		localClientID = clientNames[clientID-1];
-		clientNames.splice(clientID-1,1);
-		remoteClientNames =  clientNames;
-		*/
-
 		// Регистрируем свой peer
 		var keyID = localClientID;
 		//peer = new Peer(keyID, {key: 'x7fwx2kavpy6tj4i'});
@@ -88,6 +68,7 @@ var Manager = (function() {
 			
 			localClientID = id;
 			
+			// тут отправить пиринг-инфу на сервер, а пока записываем в куки:
 			if ($.cookie(cookieName))
 			{
 				console.log('AAA есть cookie: ', JSON.parse($.cookie(cookieName)));
@@ -105,9 +86,6 @@ var Manager = (function() {
 				$.cookie(cookieName, JSON.stringify(dataCookie), { expires: 7});
 			}
 			
-			//remoteClientNames =  _.without(dataCookie.connectedPeers, localClientID);
-			
-			// тут отправить пиринг-инфу на сервер
 		});
 
 		// Await connections from others
@@ -120,6 +98,7 @@ var Manager = (function() {
 		// Make sure things clean up properly.
 		window.onunload = window.onbeforeunload = function(e) {
 			console.log('AAA window.onunload window.onbeforeunload');
+			
 			// Удаляем peer-кукис
 			dataCookie = JSON.parse($.cookie(cookieName));
 			dataCookie.connectedPeers = _.without(dataCookie.connectedPeers, localClientID);
@@ -143,13 +122,15 @@ var Manager = (function() {
 	function getSegment(hashValue, callback)
 	{
 		console.log('AAA MMM getSegment = ', hashValue);
-		
+		// Определяем активных удаленных клиентов:
 		dataCookie = JSON.parse($.cookie(cookieName));
-		remoteClientNames =  _.without(dataCookie.connectedPeers, localClientID);
+		if (dataCookie)
+		{
+			remoteClientNames =  _.without(dataCookie.connectedPeers, localClientID);
+		}
 		
 		//if (hashValue == '1baa160a7645ffe7496d118bf8d9452a' || hashValue == '6df1da140fea9152364cf00629c15488')
-		//if (hashValue == '1baa160a7645ffe7496d118bf8d9452a')
-		if (remoteClientNames.length > 0 && hashValue != '61c85e432083be705ff75a2b10fcd213' && hashValue != '8014b59ef499b499fdd501528d25cada')
+		if (remoteClientNames && remoteClientNames.length > 0 && hashValue != '61c85e432083be705ff75a2b10fcd213' && hashValue != '8014b59ef499b499fdd501528d25cada')
 		{
 			remoteClientID = remoteClientNames[Math.floor(Math.random() * remoteClientNames.length)];
 			var requestedPeer = remoteClientID;

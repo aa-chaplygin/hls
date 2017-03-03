@@ -45,8 +45,9 @@ window.onload = function()
 
 		// Принудительный seek в проблемное место:
 		document.getElementById('seek-div').addEventListener('click', function (e) {
+			console.clear();
 			console.log('AAA SEEK');
-			videoElement.currentTime = 17;
+			videoElement.currentTime = 100;
 			//videoElement.pause();
 		});	
 
