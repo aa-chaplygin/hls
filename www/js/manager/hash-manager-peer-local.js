@@ -20,6 +20,7 @@ var Manager = (function() {
 		fieldName	= "hash",
 	
 		peer,
+		myAPIKey = 'lwjd5qra8257b9',
 		localClientID,
 		remoteClientID,
 		remoteClientNames,
@@ -58,8 +59,8 @@ var Manager = (function() {
 	{
 		// Регистрируем свой peer
 		var keyID = localClientID;
-		//peer = new Peer(keyID, {key: 'x7fwx2kavpy6tj4i'});
-		peer = new Peer({key: 'x7fwx2kavpy6tj4i'});
+		//peer = new Peer(keyID, {key: myAPIKey});
+		peer = new Peer({key: myAPIKey});
 
 		// Показываем свой ID.
 		peer.on('open', function(id){

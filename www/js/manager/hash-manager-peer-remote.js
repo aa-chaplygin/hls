@@ -20,6 +20,7 @@ var Manager = (function() {
 		fieldName	= "hash",
 	
 		peer,
+		myAPIKey = 'lwjd5qra8257b9',
 		localClientID,
 		remoteClientID;
 
@@ -55,7 +56,7 @@ var Manager = (function() {
 	function initPeer()
 	{
 		// Регистрируем свой peer
-		peer = new Peer({key: 'x7fwx2kavpy6tj4i'});
+		peer = new Peer({key: myAPIKey});
 
 		// Показываем свой ID.
 		peer.on('open', function(id){
@@ -157,30 +158,33 @@ var Manager = (function() {
 			});
 			
 			dataConnection.on('close', function() {
-				/*
+				
 				console.log('AAA dataConnection.close ', this.peer,'', this.id);
-				console.log('AAA dataConnection.close 1 = ', peer.connections[this.peer]);
 				
-				var bbb = _.toArray(peer.connections[this.peer]);
+				// Удаляем подключение если в нем нет открытых соединений
+				var peerConnections = peer.connections[this.peer];
+				console.log('AAA peerConnections 111 = ', peerConnections);
 				
-				console.log('AAA bbb= ', typeof(peer.connections[this.peer]));
-				console.log('AAA bbb= ', bbb);
+				//var openConnection = _.find(peerConnections, function(c){c.open});
+				//var openConnection = _.filter(peerConnections, function(c){c.open});
 				
+				var isOpenPresent = false;
 				
+				_.each(peerConnections, function(c,i){
+					if (c.open)
+					{
+						isOpenPresent = true;
+					}
+				});
+				console.log('AAA isOpenPresent = ', isOpenPresent);
 				
-				var con = _.findindex(bbb, function(c){return c['id'] != 0});
-				
-				console.log('AAA dataConnection.close con ss= ', con);
-				*/
-				
-				//_.without(peer.connections[this.peer], 0, 1);
-				/*
-				if (peer.connections[this.peer].length == 0)
+				if (!isOpenPresent)
 				{
+					console.log('AAA Удаляем подключение = ');
 					delete peer.connections[this.peer];
 				}
-				console.log('AAA dataConnection.close 2 = ', peer.connections);
-				*/
+				
+				console.log('AAA peerConnections 222 = ', peer.connections);
 			});
 			
 		}
