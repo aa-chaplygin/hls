@@ -62,7 +62,7 @@ var Manager = (function() {
 		peer.on('open', function(id){
 			console.log('AAA peer.open id: ', id);
 			$('#pid').text(id);
-			
+			$('#lid').show().attr('href', $('#lid').attr('href') + '?peer=' + id);
 			localClientID = id;
 			remoteClientID = window.WebRTC_GLOBALS.remote_id;
 		});
@@ -71,13 +71,17 @@ var Manager = (function() {
 		peer.on('connection', connect);
 
 		peer.on('error', function(err) {
+			console.log('AAA peer.error type:', err.type, '   message:', err.message);
 			console.log('AAA peer.error ', err);
-		})
+		});
+		
+		peer.on('disconnected', function() {
+			console.log('AAA peer.disconnected ');
+		});
 		
 		// Make sure things clean up properly.
 		window.onunload = window.onbeforeunload = function(e) {
 			console.log('AAA window.onunload window.onbeforeunload');
-			
 			if (!!peer && !peer.destroyed) {
 				peer.destroy();
 			}
@@ -101,9 +105,28 @@ var Manager = (function() {
 		// Не запрашиваем через пиринг стартовые сегменты:
 		if (hashValue != '61c85e432083be705ff75a2b10fcd213' && hashValue != '8014b59ef499b499fdd501528d25cada')
 		{
+			// Определяем peerID клиента с данными хеша:
 			var requestedPeer = remoteClientID;
 			console.log('AAA --->>> Peer Устанавливаем соединение c ', requestedPeer, ' seg = ', hashValue);
 
+			/*
+			getDataFromPeerWrapper('545454', hashValue, function(dataSegment){
+				callback(dataSegment);
+			});
+			*/
+		   			
+			getDataFromPeer('545454', hashValue,
+				function(dataSegment){
+						console.log('AAA getHashFromPeer success');
+						callback(dataSegment);
+					},
+				function(){
+						console.log('AAA getHashFromPeer error');
+						//getSegment(hashValue, callback);
+					}
+			);
+			
+			/*
 			// Соединение для передачи данных.
 			var dataConnection = peer.connect(requestedPeer, {
 				label: 'data',
@@ -111,6 +134,7 @@ var Manager = (function() {
 			});
 			
 			dataConnection.on('open', function() {
+				console.log('AAA dataConnection.open ', this);
 				var thisConnection = this;
 				
 				// Отправляем данные
@@ -157,6 +181,10 @@ var Manager = (function() {
 				console.log('AAA dataConnection.error ', this.id, ' ',err);
 			});
 			
+			dataConnection.on('disconnected', function(err) {
+				console.log('AAA dataConnection.disconnected ');
+			});
+			
 			dataConnection.on('close', function() {
 				
 				console.log('AAA dataConnection.close ', this.peer,'', this.id);
@@ -186,6 +214,7 @@ var Manager = (function() {
 				
 				console.log('AAA peerConnections 222 = ', peer.connections);
 			});
+			*/
 			
 		}
 		else
@@ -297,6 +326,116 @@ var Manager = (function() {
 		
 	}
 	
+	function getDataFromPeerWrapper(requestedPeer, hashValue, callback)
+	{
+		getDataFromPeer(requestedPeer, hashValue,
+			function(dataSegment){
+					console.log('AAA getHashFromPeer success');
+					callback(dataSegment);
+				},
+			function(){
+					console.log('AAA getHashFromPeer error');
+				}
+		);
+	}
+	
+	function getDataFromPeer(requestedPeer, hashValue, successCallback, errorCallback)
+	{
+		// Соединение для передачи данных.
+		var dataConnection = peer.connect(requestedPeer, {
+			label: 'data',
+			reliable: true
+		});
+
+		dataConnection.on('open', function() {
+			console.log('AAA dataConnection.open ', this);
+			var thisConnection = this;
+
+			// Отправляем данные
+			var peerId = thisConnection.peer;
+			console.log('AAA dataConnection.open peerId: ', peerId, ' connectionID: ', thisConnection.id);
+			var conns = peer.connections[peerId];
+			var conn = _.find(conns, function(c){ return c.id == thisConnection.id; });
+
+			var dataRequest = {
+					type: 'request',
+					//connectionID: thisConnection.id,
+					hashValue: hashValue,
+					clientID: peer.id
+				};
+			if (conn.label === 'data') {
+				conn.send(dataRequest);
+			}
+
+		});
+
+		dataConnection.on('data', function(data) {
+			if (data.type == 'response')
+			{
+				var thisConnection = this;
+				console.log('AAA получили ответ от id: ', data.clientID, '  ', thisConnection.id,' на hashValue: ', data.hashValue);
+				console.log('AAA peer.connections: --> ', peer.connections);
+
+				// Закрываем соединение
+				var peerId = data.clientID;
+				var conns = peer.connections[peerId];
+				var conn = _.find(conns, function(c){ return c.id == thisConnection.id; });
+				console.log('AAA Закрываем соединение: ', conn);
+				conn.close();
+
+				var dataSegment = data.data;
+				//if ($.isFunction(callback))
+				if ($.isFunction(successCallback))
+				{
+					//callback(dataSegment);
+					successCallback(dataSegment);
+				}
+			}
+		});
+
+		dataConnection.on('disconnected', function(err) {
+			console.log('AAA dataConnection.disconnected ');
+		});
+
+		dataConnection.on('close', function() {
+
+			console.log('AAA dataConnection.close ', this.peer,'', this.id);
+
+			// Удаляем подключение если в нем нет открытых соединений
+			var peerConnections = peer.connections[this.peer];
+			console.log('AAA peerConnections 111 = ', peerConnections);
+
+			//var openConnection = _.find(peerConnections, function(c){c.open});
+			//var openConnection = _.filter(peerConnections, function(c){c.open});
+
+			var isOpenPresent = false;
+
+			_.each(peerConnections, function(c,i){
+				if (c.open)
+				{
+					isOpenPresent = true;
+				}
+			});
+			console.log('AAA isOpenPresent = ', isOpenPresent);
+
+			if (!isOpenPresent)
+			{
+				console.log('AAA Удаляем подключение = ');
+				delete peer.connections[this.peer];
+			}
+
+			console.log('AAA peerConnections 222 = ', peer.connections);
+		});
+		
+		peer.on('error', function(err) {
+			console.log('AAA 222 peer.error type:', err.type, '   message:', err.message);
+			if ($.isFunction(errorCallback))
+			{
+				errorCallback();
+			}
+		});
+	}
+	
 	function hashGet(str)
 	{
 		var bytesCount = 30000;
@@ -373,6 +512,10 @@ var Manager = (function() {
 						console.log('AAA requestDB error ', event);
 					}
 				}
+			});
+			
+			targetConnection.on('error', function(err) {
+				console.log('AAA targetConnection.error ', err);
 			});
 			
 			targetConnection.on('close', function() {

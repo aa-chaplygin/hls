@@ -67,7 +67,15 @@
 		<video id="myVideo" width="640" height="360" controls>No video available</video>
 	</div>
 	<div id="seek-div" style="cursor: pointer; margin-top: 4px">[seek->]</div>
+	
+	<? if (isset($_GET['peer'])) { ?>
 	<div id="peer-div" style="cursor: pointer; margin-top: 4px">[peer->]</div>
 	<b>Your PeerJS ID is</b> <span id="pid"></span>
+		<? if ($_GET['peer']=='remote') { ?>
+		<div>
+		<a id="lid" style="display: none;" href="<?=$_SERVER["DOCUMENT_URI"] ?>" target="_blank">Удаленный клиент с соединением сюда</a>
+		</div>
+		<? } ?>
+	<? } ?>
 </body>
 </html>
