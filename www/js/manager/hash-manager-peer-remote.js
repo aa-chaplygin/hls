@@ -18,6 +18,7 @@ var Manager = (function() {
 		storeName	= "segments",
 		indexName	= "by_hash",
 		fieldName	= "hash",
+		indexedHashesKeys,
 	
 		peer,
 		myAPIKey = 'lwjd5qra8257b9',
@@ -57,8 +58,13 @@ var Manager = (function() {
 			
 			var getAllHashesKeys = db.transaction(storeName, "readonly").objectStore(storeName).index(indexName).getAllKeys();
 			getAllHashesKeys.onsuccess = function(event) {
+				indexedHashesKeys = getAllHashesKeys.result;
+				
 				// Отправляем даные на сервер об имеющихся ключах в локальной indexedDB
-				//console.log('AAA allHashe result = ', getAllHashesKeys.result);
+				if (localClientID)
+				{
+					sendClientDataHashes();
+				}
 			}
 			
 		};
@@ -83,6 +89,12 @@ var Manager = (function() {
 			$('#lid').show().attr('href', $('#lid').attr('href') + '?peer=' + id);
 			localClientID = id;
 			remoteClientID = window.WebRTC_GLOBALS.remote_id;
+			
+			// Отправляем даные на сервер об имеющихся ключах в локальной indexedDB
+			if (indexedHashesKeys)
+			{
+				sendClientDataHashes();
+			}
 		});
 
 		// Await connections from others
@@ -514,6 +526,13 @@ var Manager = (function() {
 			});
 		}
 		
+	}
+	
+	// Send client data segments hashes keys
+	function sendClientDataHashes()
+	{
+		console.log('AAA Отправляем даные на сервер об имеющихся ключах в локальной indexedDB: ');
+		console.log('AAA localClientID: ', localClientID, '  ', indexedHashesKeys);
 	}
 	
 	/*
