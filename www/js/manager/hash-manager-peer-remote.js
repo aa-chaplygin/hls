@@ -533,6 +533,18 @@ var Manager = (function() {
 	{
 		console.log('AAA Отправляем даные на сервер об имеющихся ключах в локальной indexedDB: ');
 		console.log('AAA localClientID: ', localClientID, '  ', indexedHashesKeys);
+		var hashesToDelete = ['234243', '565656', '6867'];
+		deleteHashKey(hashesToDelete);
+	}
+	
+	// Удаление из indexedDB пары ключ-значение
+	function deleteHashKey(hashes)
+	{
+		var tx = db.transaction(storeName, "readwrite");
+		hashes.forEach(function(hashValue) {
+			console.log(hashValue);
+			tx.objectStore(storeName).delete(hashValue);
+		});
 	}
 	
 	/*
