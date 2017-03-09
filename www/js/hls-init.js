@@ -47,8 +47,8 @@ window.onload = function()
 		document.getElementById('seek-div').addEventListener('click', function (e) {
 			console.clear();
 			console.log('AAA SEEK');
-			//videoElement.currentTime = 100;
-			videoElement.currentTime = 60;
+			videoElement.currentTime = 100;
+			//videoElement.currentTime = 60;
 			//videoElement.pause();
 		});	
 

@@ -24,11 +24,19 @@ var Manager = (function() {
 		localClientID,
 		remoteClientID;
 
+	function initData(data)
+	{
+		console.log('AAA MMM segmentsData = ', data);
+		segmentsData = data.segmentsData;
+		type = data.type;
+		connectDB();
+		initPeer();
+	}
 	
 	function connectDB()
 	{
-		//console.log('AAA Открываем базу данных:');
-		//indexedDB.deleteDatabase("exampleDatHash");
+		console.log('AAA Открываем базу данных:');
+		
 		var indexDBRequest = indexedDB.open(baseName, 1);
 		
 		indexDBRequest.onupgradeneeded = function (event) {
@@ -46,11 +54,21 @@ var Manager = (function() {
 			//console.log('AAA DB Подключились к существующей БД ', managerItem);
 			db = event.target.result;
 			$window.trigger('Manager:connect', {type: 'success'});
+			
+			var getAllHashesKeys = db.transaction(storeName, "readonly").objectStore(storeName).index(indexName).getAllKeys();
+			getAllHashesKeys.onsuccess = function(event) {
+				// Отправляем даные на сервер об имеющихся ключах в локальной indexedDB
+				//console.log('AAA allHashe result = ', getAllHashesKeys.result);
+			}
+			
 		};
 		indexDBRequest.onerror = function(event) {
 			//console.log('AAA DB Подключиться к БД не удалось, обрабатываем ошибку');
 			$window.trigger('Manager:connect', {type: 'error'});
 		}
+		
+		
+		
 	}
 	
 	function initPeer()
@@ -88,14 +106,7 @@ var Manager = (function() {
 		};
 	}
 	
-	function initData(data)
-	{
-		console.log('AAA MMM segmentsData = ', data);
-		segmentsData = data.segmentsData;
-		type = data.type;
-		connectDB();
-		initPeer();
-	}
+	var iii = 0;
 	
 	function getSegment(hashValue, callback)
 	{
@@ -105,24 +116,22 @@ var Manager = (function() {
 		// Не запрашиваем через пиринг стартовые сегменты:
 		if (hashValue != '61c85e432083be705ff75a2b10fcd213' && hashValue != '8014b59ef499b499fdd501528d25cada')
 		{
+			iii++;
+			
 			// Определяем peerID клиента с данными хеша:
-			var requestedPeer = remoteClientID;
+			//var requestedPeer = remoteClientID;
+			var requestedPeer = (iii == 1) ? '545454' : remoteClientID;
+			
 			console.log('AAA --->>> Peer Устанавливаем соединение c ', requestedPeer, ' seg = ', hashValue);
-
-			/*
-			getDataFromPeerWrapper('545454', hashValue, function(dataSegment){
-				callback(dataSegment);
-			});
-			*/
-		   			
-			getDataFromPeer('545454', hashValue,
+					
+			getDataFromPeer(requestedPeer, hashValue,
 				function(dataSegment){
 						console.log('AAA getHashFromPeer success');
 						callback(dataSegment);
 					},
 				function(){
 						console.log('AAA getHashFromPeer error');
-						//getSegment(hashValue, callback);
+						getSegment(hashValue, callback);
 					}
 			);
 			
@@ -326,19 +335,6 @@ var Manager = (function() {
 		
 	}
 	
-	function getDataFromPeerWrapper(requestedPeer, hashValue, callback)
-	{
-		getDataFromPeer(requestedPeer, hashValue,
-			function(dataSegment){
-					console.log('AAA getHashFromPeer success');
-					callback(dataSegment);
-				},
-			function(){
-					console.log('AAA getHashFromPeer error');
-				}
-		);
-	}
-	
 	function getDataFromPeer(requestedPeer, hashValue, successCallback, errorCallback)
 	{
 		// Соединение для передачи данных.
@@ -384,10 +380,8 @@ var Manager = (function() {
 				conn.close();
 
 				var dataSegment = data.data;
-				//if ($.isFunction(callback))
 				if ($.isFunction(successCallback))
 				{
-					//callback(dataSegment);
 					successCallback(dataSegment);
 				}
 			}
@@ -404,9 +398,6 @@ var Manager = (function() {
 			// Удаляем подключение если в нем нет открытых соединений
 			var peerConnections = peer.connections[this.peer];
 			console.log('AAA peerConnections 111 = ', peerConnections);
-
-			//var openConnection = _.find(peerConnections, function(c){c.open});
-			//var openConnection = _.filter(peerConnections, function(c){c.open});
 
 			var isOpenPresent = false;
 
