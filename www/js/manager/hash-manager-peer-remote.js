@@ -467,20 +467,25 @@ var Manager = (function() {
 		
 		// Определяем размер сегментов в indexedDB:
 		var size = 0;
+		var count = 0;
 		var getAllHashesSegmentsSize = db.transaction(storeName).objectStore(storeName).openCursor();
 		getAllHashesSegmentsSize.onsuccess = function(event){
 			var cursor = event.target.result;
 			if (cursor) {
+				count++;
 				size += cursor.value.data.byteLength;
-				console.log("Name for hash " + cursor.key + " is " + cursor.value + "  " + cursor.value.data.byteLength);
+				//console.log("Name for hash " + cursor.key + " is " + cursor.value + "  " + cursor.value.data.byteLength);
 				cursor.continue();
 			}
 			else {
-			  console.log("No more entries! Total size is ", bytesToSize(size));
+			  console.log("No more entries! Total size is ", bytesToSize(size), " Total size is ", count, " mean value: ", Math.round(size/count));
 			}
         }
-
-		// Удаление сегментов из indexedDB:
+		
+		// 1. определяем есть ли необходимость освобождения памяти в indexedDB.
+		// 2. определяем коли-во сегментов которое нужно освободить
+		// 3. от сервера получаем номера сегментов для удаления
+		// 4. Удаление сегментов из indexedDB:
 		var hashesToDelete = ['234243', '565656', '6867'];
 		deleteHashKey(hashesToDelete);
 	}
