@@ -56,7 +56,7 @@ var Manager = (function() {
 			db = event.target.result;
 			$window.trigger('Manager:connect', {type: 'success'});
 			
-			var getAllHashesKeys = db.transaction(storeName, "readonly").objectStore(storeName).index(indexName).getAllKeys();
+			var getAllHashesKeys = db.transaction(storeName, "readonly").objectStore(storeName).getAllKeys();
 			getAllHashesKeys.onsuccess = function(event) {
 				indexedHashesKeys = getAllHashesKeys.result;
 				
@@ -533,8 +533,25 @@ var Manager = (function() {
 	{
 		console.log('AAA Отправляем даные на сервер об имеющихся ключах в локальной indexedDB: ');
 		console.log('AAA localClientID: ', localClientID, '  ', indexedHashesKeys);
+		
+		// Определяем размер сегментов в indexedDB:
+		var size = 0;
+		var getAllHashesSegmentsSize = db.transaction(storeName).objectStore(storeName).openCursor();
+		getAllHashesSegmentsSize.onsuccess = function(event){
+			var cursor = event.target.result;
+			if (cursor) {
+				size += cursor.value.data.byteLength;
+				console.log("Name for hash " + cursor.key + " is " + cursor.value + "  " + cursor.value.data.byteLength);
+				cursor.continue();
+			}
+			else {
+			  console.log("No more entries! Total size is ", bytesToSize(size));
+			}
+        }
+		
 		var hashesToDelete = ['234243', '565656', '6867'];
 		deleteHashKey(hashesToDelete);
+		
 	}
 	
 	// Удаление из indexedDB пары ключ-значение
@@ -545,7 +562,17 @@ var Manager = (function() {
 			console.log(hashValue);
 			tx.objectStore(storeName).delete(hashValue);
 		});
+		
+		console.log('AAA ====', tx);
 	}
+	
+	// Convert size in bytes to KB, MB, GB
+	function bytesToSize(bytes) {
+		var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+		if (bytes == 0) return '0 Byte';
+		var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+		return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+	};
 	
 	/*
 		Public
