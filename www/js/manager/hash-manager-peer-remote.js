@@ -119,7 +119,6 @@ var Manager = (function() {
 	}
 	
 	var iii = 0;
-	
 	function getSegment(hashValue, callback)
 	{
 		//console.log('AAA MMM getSegment = ', hashValue);
@@ -137,9 +136,27 @@ var Manager = (function() {
 			console.log('AAA --->>> Peer Устанавливаем соединение c ', requestedPeer, ' seg = ', hashValue);
 					
 			getDataFromPeer(requestedPeer, hashValue,
-				function(dataSegment){
+				function(dataResponse){
 						console.log('AAA getHashFromPeer success');
-						callback(dataSegment);
+						
+						// Сохраняем данные в базе
+						/*
+						var tx = db.transaction("segments", "readwrite");
+						var store = tx.objectStore("segments");
+						var requestAddSegment = store.put({hash:hashValue, data: dataResponse});
+						requestAddSegment.onsuccess= function(){
+							//console.log('AAA Данные сегмента сохранились');
+						}
+						requestAddSegment.onerror= function(){
+							//console.log('AAA Во время сохранения данных произошла ошибка');
+						}
+						*/
+					   
+						if ($.isFunction(callback))
+						{
+							var dataSegment = new Uint8Array(dataResponse);
+							callback(dataSegment);
+						}
 					},
 				function(){
 						console.log('AAA getHashFromPeer error');
@@ -252,16 +269,16 @@ var Manager = (function() {
 				// проверка в БД
 				if (segmentsDBItem)
 				{
-					console.log('AAA есть данные в БД ', segmentsDBItem);
-					var dataSegment = new Uint8Array(segmentsDBItem.data);
+					console.log('AAA есть данные в локальной БД ', segmentsDBItem);
 					if ($.isFunction(callback))
 					{
+						var dataSegment = new Uint8Array(segmentsDBItem.data);
 						callback(dataSegment);
 					}
 				}
 				else
 				{
-					console.log('AAA нет данных в БД, делаем запрос');
+					console.log('AAA нет данных в БД, делаем запрос на сервер');
 
 					if (type == 'mpd')
 					{
@@ -284,7 +301,6 @@ var Manager = (function() {
 						}
 					}
 
-					//if (range || url) {
 					if (segmentItem.r || url) {
 
 						// Запрос на разные домены:
@@ -309,7 +325,6 @@ var Manager = (function() {
 
 						xhr.addEventListener("readystatechange", function () {
 							if (xhr.readyState == xhr.DONE && xhr.response != null /*&& xhr.status == 200*/) { // wait for video data to load
-								var dataSegment = new Uint8Array(xhr.response);
 
 								/*
 								var t0 = performance.now();
@@ -332,6 +347,7 @@ var Manager = (function() {
 
 								if ($.isFunction(callback))
 								{
+									var dataSegment = new Uint8Array(xhr.response);
 									callback(dataSegment);
 								}
 							}
@@ -391,10 +407,10 @@ var Manager = (function() {
 				console.log('AAA Закрываем соединение: ', conn);
 				conn.close();
 
-				var dataSegment = data.data;
+				var dataResponse = data.data;
 				if ($.isFunction(successCallback))
 				{
-					successCallback(dataSegment);
+					successCallback(dataResponse);
 				}
 			}
 		});
@@ -490,7 +506,8 @@ var Manager = (function() {
 						if (segmentsDBItem)
 						{
 							//console.log('AAA -->> есть данные в БД ', segmentsDBItem);
-							var dataSegment = new Uint8Array(segmentsDBItem.data);
+							//var dataSegment = new Uint8Array(segmentsDBItem.data);
+							var dataSegment = segmentsDBItem.data;
 							
 							// Возвращаем ответ:
 							console.log('AAA Возвращаем ответ по соединению: ', thisConnection.id);
@@ -548,10 +565,10 @@ var Manager = (function() {
 			  console.log("No more entries! Total size is ", bytesToSize(size));
 			}
         }
-		
+
+		// Удаление сегментов из indexedDB:
 		var hashesToDelete = ['234243', '565656', '6867'];
 		deleteHashKey(hashesToDelete);
-		
 	}
 	
 	// Удаление из indexedDB пары ключ-значение
