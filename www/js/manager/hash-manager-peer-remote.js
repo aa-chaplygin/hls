@@ -146,6 +146,8 @@ var Manager = (function() {
 						var requestAddSegment = store.put({hash:hashValue, data: dataResponse});
 						requestAddSegment.onsuccess= function(){
 							//console.log('AAA Данные сегмента сохранились');
+							// Отправляем инфу о сегменте на сервер:
+							addHashClientData(localClientID, hashValue);
 						}
 						requestAddSegment.onerror= function(){
 							//console.log('AAA Во время сохранения данных произошла ошибка');
@@ -163,96 +165,6 @@ var Manager = (function() {
 						getSegment(hashValue, callback);
 					}
 			);
-			
-			/*
-			// Соединение для передачи данных.
-			var dataConnection = peer.connect(requestedPeer, {
-				label: 'data',
-				reliable: true
-			});
-			
-			dataConnection.on('open', function() {
-				console.log('AAA dataConnection.open ', this);
-				var thisConnection = this;
-				
-				// Отправляем данные
-				var peerId = thisConnection.peer;
-				console.log('AAA dataConnection.open peerId: ', peerId, ' connectionID: ', thisConnection.id);
-				var conns = peer.connections[peerId];
-				var conn = _.find(conns, function(c){ return c.id == thisConnection.id; });
-				
-				var dataRequest = {
-						type: 'request',
-						//connectionID: thisConnection.id,
-						hashValue: hashValue,
-						clientID: peer.id
-					};
-				if (conn.label === 'data') {
-					conn.send(dataRequest);
-				}
-				
-			});
-			
-			dataConnection.on('data', function(data) {
-				if (data.type == 'response')
-				{
-					var thisConnection = this;
-					console.log('AAA получили ответ от id: ', data.clientID, '  ', thisConnection.id,' на hashValue: ', data.hashValue);
-					console.log('AAA peer.connections: --> ', peer.connections);
-					
-					// Закрываем соединение
-					var peerId = data.clientID;
-					var conns = peer.connections[peerId];
-					var conn = _.find(conns, function(c){ return c.id == thisConnection.id; });
-					console.log('AAA Закрываем соединение: ', conn);
-					conn.close();
-					
-					var dataSegment = data.data;
-					if ($.isFunction(callback))
-					{
-						callback(dataSegment);
-					}
-				}
-			});
-			
-			dataConnection.on('error', function(err) {
-				console.log('AAA dataConnection.error ', this.id, ' ',err);
-			});
-			
-			dataConnection.on('disconnected', function(err) {
-				console.log('AAA dataConnection.disconnected ');
-			});
-			
-			dataConnection.on('close', function() {
-				
-				console.log('AAA dataConnection.close ', this.peer,'', this.id);
-				
-				// Удаляем подключение если в нем нет открытых соединений
-				var peerConnections = peer.connections[this.peer];
-				console.log('AAA peerConnections 111 = ', peerConnections);
-				
-				//var openConnection = _.find(peerConnections, function(c){c.open});
-				//var openConnection = _.filter(peerConnections, function(c){c.open});
-				
-				var isOpenPresent = false;
-				
-				_.each(peerConnections, function(c,i){
-					if (c.open)
-					{
-						isOpenPresent = true;
-					}
-				});
-				console.log('AAA isOpenPresent = ', isOpenPresent);
-				
-				if (!isOpenPresent)
-				{
-					console.log('AAA Удаляем подключение = ');
-					delete peer.connections[this.peer];
-				}
-				
-				console.log('AAA peerConnections 222 = ', peer.connections);
-			});
-			*/
 			
 		}
 		else
@@ -340,6 +252,8 @@ var Manager = (function() {
 								var requestAddSegment = store.put({hash:hashValue, data: xhr.response});
 								requestAddSegment.onsuccess= function(){
 									//console.log('AAA Данные сегмента сохранились');
+									// Отправляем инфу о сегменте на сервер:
+									addHashClientData(localClientID, hashValue);
 								}
 								requestAddSegment.onerror= function(){
 									//console.log('AAA Во время сохранения данных произошла ошибка');
@@ -570,6 +484,14 @@ var Manager = (function() {
 		var hashesToDelete = ['234243', '565656', '6867'];
 		deleteHashKey(hashesToDelete);
 	}
+	
+	// Отправка данных о добавленном хеше в indexedDB:
+	function addHashClientData(clientPeerId, hashValue)
+	{
+		
+	}
+	
+	
 	
 	// Удаление из indexedDB пары ключ-значение
 	function deleteHashKey(hashes)
