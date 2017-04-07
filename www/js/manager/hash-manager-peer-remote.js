@@ -19,11 +19,13 @@ var Manager = (function() {
 		indexName	= "by_hash",
 		fieldName	= "hash",
 		indexedHashesKeys,
+		limitSize = 20000000,
 	
 		peer,
 		myAPIKey = 'lwjd5qra8257b9',
 		localClientID,
 		remoteClientID;
+
 
 	function initData(data)
 	{
@@ -59,7 +61,6 @@ var Manager = (function() {
 			var getAllHashesKeys = db.transaction(storeName, "readonly").objectStore(storeName).getAllKeys();
 			getAllHashesKeys.onsuccess = function(event) {
 				indexedHashesKeys = getAllHashesKeys.result;
-				
 				// Отправляем даные на сервер об имеющихся ключах в локальной indexedDB
 				if (localClientID)
 				{
@@ -85,11 +86,11 @@ var Manager = (function() {
 		// Показываем свой ID.
 		peer.on('open', function(id){
 			console.log('AAA peer.open id: ', id);
-			$('#pid').text(id);
-			$('#lid').show().attr('href', $('#lid').attr('href') + '?peer=' + id);
 			localClientID = id;
 			remoteClientID = window.WebRTC_GLOBALS.remote_id;
-			
+			// Выводим инфу о своём peerId и ссылкой на себя:
+			$('#pid').text(localClientID);
+			$('#lid').show().attr('href', $('#lid').attr('href') + '?peer=' + localClientID);
 			// Отправляем даные на сервер об имеющихся ключах в локальной indexedDB
 			if (indexedHashesKeys)
 			{
@@ -102,16 +103,15 @@ var Manager = (function() {
 
 		peer.on('error', function(err) {
 			console.log('AAA peer.error type:', err.type, '   message:', err.message);
-			console.log('AAA peer.error ', err);
 		});
 		
 		peer.on('disconnected', function() {
-			console.log('AAA peer.disconnected ');
+			//console.log('AAA peer.disconnected ');
 		});
 		
 		// Make sure things clean up properly.
 		window.onunload = window.onbeforeunload = function(e) {
-			console.log('AAA window.onunload window.onbeforeunload');
+			//console.log('AAA window.onunload window.onbeforeunload');
 			if (!!peer && !peer.destroyed) {
 				peer.destroy();
 			}
@@ -121,16 +121,16 @@ var Manager = (function() {
 	var iii = 0;
 	function getSegment(hashValue, callback)
 	{
-		//console.log('AAA MMM getSegment = ', hashValue);
+		console.log('AAA MMM getSegment = ', hashValue);
 		
-		//if (hashValue == '1baa160a7645ffe7496d118bf8d9452a' || hashValue == '6df1da140fea9152364cf00629c15488')
-		// Не запрашиваем через пиринг стартовые сегменты:
+		// Не запрашиваем через пиринг стартовые сегменты: 
 		if (hashValue != '61c85e432083be705ff75a2b10fcd213' && hashValue != '8014b59ef499b499fdd501528d25cada')
 		{
 			iii++;
 			
 			// Определяем peerID клиента с данными хеша:
 			//var requestedPeer = remoteClientID;
+			// Для эмуляции запоса к отключенному клиенту с id=545454
 			var requestedPeer = (iii == 1) ? '545454' : remoteClientID;
 			
 			console.log('AAA --->>> Peer Устанавливаем соединение c ', requestedPeer, ' seg = ', hashValue);
@@ -140,19 +140,17 @@ var Manager = (function() {
 						console.log('AAA getHashFromPeer success');
 						
 						// Сохраняем данные в базе
-						/*
 						var tx = db.transaction("segments", "readwrite");
 						var store = tx.objectStore("segments");
 						var requestAddSegment = store.put({hash:hashValue, data: dataResponse});
 						requestAddSegment.onsuccess= function(){
-							//console.log('AAA Данные сегмента сохранились');
+							console.log('AAA Данные сегмента сохранились');
 							// Отправляем инфу о сегменте на сервер:
 							addHashClientData(localClientID, hashValue);
 						}
 						requestAddSegment.onerror= function(){
-							//console.log('AAA Во время сохранения данных произошла ошибка');
+							console.log('AAA Во время сохранения данных произошла ошибка');
 						}
-						*/
 					   
 						if ($.isFunction(callback))
 						{
@@ -334,12 +332,11 @@ var Manager = (function() {
 		});
 
 		dataConnection.on('close', function() {
-
-			console.log('AAA dataConnection.close ', this.peer,'', this.id);
+			//console.log('AAA dataConnection.close ', this.peer,'', this.id);
 
 			// Удаляем подключение если в нем нет открытых соединений
 			var peerConnections = peer.connections[this.peer];
-			console.log('AAA peerConnections 111 = ', peerConnections);
+			//console.log('AAA peerConnections 111 = ', peerConnections);
 
 			var isOpenPresent = false;
 
@@ -349,19 +346,17 @@ var Manager = (function() {
 					isOpenPresent = true;
 				}
 			});
-			console.log('AAA isOpenPresent = ', isOpenPresent);
-
+			
+			//console.log('AAA isOpenPresent = ', isOpenPresent);
 			if (!isOpenPresent)
 			{
-				console.log('AAA Удаляем подключение = ');
+				//console.log('AAA Удаляем подключение = ');
 				delete peer.connections[this.peer];
 			}
-
-			console.log('AAA peerConnections 222 = ', peer.connections);
+			//console.log('AAA peerConnections 222 = ', peer.connections);
 		});
 		
 		peer.on('error', function(err) {
-			console.log('AAA 222 peer.error type:', err.type, '   message:', err.message);
 			if ($.isFunction(errorCallback))
 			{
 				errorCallback();
@@ -462,52 +457,84 @@ var Manager = (function() {
 	// Send client data segments hashes keys
 	function sendClientDataHashes()
 	{
-		console.log('AAA Отправляем даные на сервер об имеющихся ключах в локальной indexedDB: ');
-		console.log('AAA localClientID: ', localClientID, '  ', indexedHashesKeys);
+		// Отправляем даные на сервер об имеющихся ключах в локальной indexedDB:
+		sendAllHashesClientData(localClientID, indexedHashesKeys);
 		
-		// Определяем размер сегментов в indexedDB:
+		// Контроль за локальным кешем (indexedDB)
+		
+		// Определяем размер сегментов (общий и средний) в indexedDB:
 		var size = 0;
 		var count = 0;
+		var meanSegmentSize;
 		var getAllHashesSegmentsSize = db.transaction(storeName).objectStore(storeName).openCursor();
 		getAllHashesSegmentsSize.onsuccess = function(event){
 			var cursor = event.target.result;
 			if (cursor) {
 				count++;
 				size += cursor.value.data.byteLength;
-				//console.log("Name for hash " + cursor.key + " is " + cursor.value + "  " + cursor.value.data.byteLength);
 				cursor.continue();
 			}
 			else {
-			  console.log("No more entries! Total size is ", bytesToSize(size), " Total size is ", count, " mean value: ", Math.round(size/count));
+				meanSegmentSize = Math.round(size/count);
+				console.log("AAA indexedDB: Total size is ", bytesToSize(size), " Total count is ", count, " mean value: ", bytesToSize(meanSegmentSize));
+			  
+				// 1. определяем есть ли необходимость освобождения памяти в indexedDB.
+				if (size > limitSize)
+				{
+					console.log('AAA размер кеша превышен, требуется очистка данных ');
+					// 2. определяем коли-во сегментов которое нужно освободить и отправляем эту инфу на сервер:
+					var segmentsToFreeCount = Math.ceil((size-limitSize)/meanSegmentSize);
+					console.log('AAA localClientID: ', localClientID, ' segmentsToFreeCount = ', segmentsToFreeCount);
+					// 3. от сервера получаем номера сегментов для удаления
+					$.ajax("/scripts/test-segments-free.php",{
+						type: "GET",
+						dataType: "json",
+						data: {id: localClientID, remote: remoteClientID, count: segmentsToFreeCount},
+						success: function(hashesToDelete) {
+							console.log('AAA hashesToDelete: ', hashesToDelete);
+							// 4. Удаление сегментов из indexedDB:
+							if (hashesToDelete.length)
+							{
+								deleteHashClientData(hashesToDelete);
+							}
+						},
+						error : function() {}
+					});
+					
+				}
+			  
 			}
         }
 		
-		// 1. определяем есть ли необходимость освобождения памяти в indexedDB.
-		// 2. определяем коли-во сегментов которое нужно освободить
-		// 3. от сервера получаем номера сегментов для удаления
-		// 4. Удаление сегментов из indexedDB:
-		var hashesToDelete = ['234243', '565656', '6867'];
-		deleteHashKey(hashesToDelete);
+	}
+	
+	// Отправка данных о всех хешах клиента в indexedDB:
+	function sendAllHashesClientData(clientPeerId, hashesValues)
+	{
+		console.log('AAA Отправляем даные на сервер об имеющихся ключах в локальной indexedDB: ', clientPeerId, '  ', hashesValues.length);
 	}
 	
 	// Отправка данных о добавленном хеше в indexedDB:
 	function addHashClientData(clientPeerId, hashValue)
 	{
-		
+		console.log('AAA Отправляем даные на сервер о добавленном ключе в локальной indexedDB: ', clientPeerId, '  ', hashValue);
 	}
 	
-	
-	
 	// Удаление из indexedDB пары ключ-значение
-	function deleteHashKey(hashes)
+	function deleteHashClientData(hashes)
 	{
+		console.log('AAA deleteHashClientData: ', hashes);
 		var tx = db.transaction(storeName, "readwrite");
 		hashes.forEach(function(hashValue) {
-			console.log(hashValue);
 			tx.objectStore(storeName).delete(hashValue);
 		});
 		
-		console.log('AAA ====', tx);
+		// Составляем и отправляем на сервер новый обновленный список сегментов, имеющихся у клиента
+		var getAllHashesKeys = db.transaction(storeName, "readonly").objectStore(storeName).getAllKeys();
+		getAllHashesKeys.onsuccess = function(event) {
+			sendAllHashesClientData(localClientID, getAllHashesKeys.result);
+		}
+		
 	}
 	
 	// Convert size in bytes to KB, MB, GB

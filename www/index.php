@@ -11,7 +11,8 @@
 		<h1><?=$_SERVER ["HTTP_HOST"] ?></h1>
 		
 		<ul>
-			<? if ($_SERVER ["HTTP_HOST"] == 'hls.dev') { ?>
+		<? if ($_SERVER ["HTTP_HOST"] == 'hls.dev') { ?>
+			
 			<!--
 			<li><a href="pages/rewind-mpd-dat.html">Тестирование перемотки MPD DAT(JSON)</a></li>
 			<li><a href="pages/rewind-mpd-dat-hash.html">Тестирование перемотки MPD DAT(JSON) hash</a></li>
@@ -59,7 +60,7 @@
 			<li><a href="pages/webrtc-data.php?client=1">data-client-1</a></li>
 			<li><a href="pages/webrtc-data.php?client=2">data-client-2</a></li>
 			
-			<? } else { ?>
+		<? } else { ?>
 			
 			<h2>Тестирование файлов DAT(JSON) с запросами через hash MANAGER</h2>
 			<li>
@@ -77,7 +78,8 @@
 				</ul>
 			</li>
 		
-			<? } ?>
+		<? } ?>
+			
 		</ul>
 		
 	</body>

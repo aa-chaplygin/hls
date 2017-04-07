@@ -25,12 +25,12 @@ window.onload = function()
 						}
 
 						if (tempoutput.vrid) {
-							console.log('AAA Type = M4S ', $(videoElement));
+							//console.log('AAA Type = M4S ', $(videoElement));
 							$(videoElement).hlsM4S({
 								data: tempoutput
 							});
 						} else {
-							console.log('AAA Type = MPD ', $(videoElement));
+							//console.log('AAA Type = MPD ', $(videoElement));
 							$(videoElement).hlsMPD({
 								data: tempoutput
 							});

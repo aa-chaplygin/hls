@@ -14,15 +14,15 @@
 	<script src="/js/jquery.hls-m4s.js"></script>
 	
 	<? if (isset($_GET['peer'])) { ?>
-	<script src="/js/peer.js"></script>
+		<script src="/js/peer.js"></script>
 		<? if ($_GET['peer']=='local') { ?>
-		<script src="/js/jquery.cookie.js"></script>
-		<script src="/js/manager/hash-manager-peer-local.js"></script>
+			<script src="/js/jquery.cookie.js"></script>
+			<script src="/js/manager/hash-manager-peer-local.js"></script>
 		<? } else { ?>
-		<script src="/js/manager/hash-manager-peer-remote.js"></script>
+			<script src="/js/manager/hash-manager-peer-remote.js"></script>
 		<? } ?>
 	<? } else { ?>
-	<script src="/js/manager/hash-manager.js"></script>
+		<script src="/js/manager/hash-manager.js"></script>
 	<? } ?>
 	
 	
