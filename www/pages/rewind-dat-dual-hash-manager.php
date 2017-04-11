@@ -25,7 +25,6 @@
 		<script src="/js/manager/hash-manager.js"></script>
 	<? } ?>
 	
-	
 	<?
 		$test_file = 'toystory_dash.dat';
 		$filename = (isset($_GET['file'])) ? $_GET['file'] : $test_file;
@@ -33,6 +32,8 @@
 		$filename = (file_exists($filename)) ? $filename : $test_file;
 	?>
 	
+	
+		
 	<!-- Передача параметров от PHP-скриптов пожатым JS-скриптам -->
 	<script type="text/javascript">
 
@@ -41,7 +42,7 @@
 			}
 		
 		window.HLS_GLOBALS = {
-			file_dat: '/video/<?=$filename ?>'
+			file_dat: '/video/<?=$filename ?>',
 			}
 		/*
 		range

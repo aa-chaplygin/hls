@@ -119,19 +119,27 @@ var Manager = (function() {
 	}
 	
 	var iii = 0;
-	function getSegment(hashValue, callback)
+	function getSegment(hashValue, callback, getFromPeer)
 	{
 		console.log('AAA MMM getSegment = ', hashValue);
 		
-		// Не запрашиваем через пиринг стартовые сегменты: 
-		if (hashValue != '61c85e432083be705ff75a2b10fcd213' && hashValue != '8014b59ef499b499fdd501528d25cada')
+		getFromPeer = (typeof(getFromPeer) !== 'undefined') ?  getFromPeer : true;
+		console.log('AAA MMM getFromPeer = ', getFromPeer);
+		
+		// Определяем peerId с запрашиваемым хеш-сегментом, в случае такогового запрашиваем данные через пиринг:
+		
+		// Не запрашиваем через пиринг стартовые сегменты (Этот момент нужно организовать в логике): 
+		if (getFromPeer)
+		//if (hashValue != '61c85e432083be705ff75a2b10fcd213' && hashValue != '8014b59ef499b499fdd501528d25cada') // range
+		// if (hashValue != '093ca3e8291a7469cc82ee0352463019' && hashValue != '0ec93c6368e497a53df89b44ece0c6af') // m4s
 		{
-			iii++;
 			
 			// Определяем peerID клиента с данными хеша:
-			//var requestedPeer = remoteClientID;
+			var requestedPeer = remoteClientID;
+			
 			// Для эмуляции запоса к отключенному клиенту с id=545454
-			var requestedPeer = (iii == 1) ? '545454' : remoteClientID;
+			// iii++;
+			//var requestedPeer = (iii == 1) ? '545454' : remoteClientID;
 			
 			console.log('AAA --->>> Peer Устанавливаем соединение c ', requestedPeer, ' seg = ', hashValue);
 					
@@ -167,7 +175,7 @@ var Manager = (function() {
 		}
 		else
 		{
-			//console.log('AAA Извлекаем данные из базы: ', db);
+			console.log('AAA Извлекаем данные из базы: ', db);
 			var tx = db.transaction(storeName, "readonly");
 			var store = tx.objectStore(storeName);
 			var index = store.index(indexName);

@@ -236,7 +236,7 @@
 				videoSource.appendBuffer(data);
 				// Wait for the update complete event before continuing
 				videoSource.addEventListener("update",updateFunct);
-			});
+			}, false);
 			
 			if (isDualTracks)
 			{
@@ -247,7 +247,7 @@
 				Manager.getSegment(initializationAudioHash, function(data){
 					audioSource.appendBuffer(data);
 					audioSource.addEventListener("update", updateFunctAudio);
-				});
+				}, false);
 			}
 		}
 		
@@ -306,7 +306,8 @@
 			
 			var 
 				hashValue = (isVideo) ? hashesVideo[ind] : hashesAudio[ind],
-				targetSource = (isVideo) ? videoSource : audioSource;
+				targetSource = (isVideo) ? videoSource : audioSource,
+				getFromPeer = (ind == 0) ? false : true;
 			
 			Manager.getSegment(hashValue, function(data){
 				// Расчет для точной длины сегмента:
@@ -338,7 +339,7 @@
 						}
 					}, 10);
 				}
-			});
+			}, getFromPeer);
 		}
 		
 		//  Get video segments 

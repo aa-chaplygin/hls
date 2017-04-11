@@ -157,7 +157,8 @@
 				type: 'm4s',
 				segmentsData: segmentsData
 			});
-				
+			
+			
 		
 		}
 		
@@ -260,7 +261,7 @@
 			Manager.getSegment(initializationVideoHash, function(data){
 				videoSource.appendBuffer(data);
 				videoSource.addEventListener("update", updateFunctVideo);
-			});
+			}, false);
 			
 			if (isDualTracks)
 			{
@@ -272,7 +273,7 @@
 				Manager.getSegment(initializationAudioHash, function(data){
 					audioSource.appendBuffer(data);
 					audioSource.addEventListener("update", updateFunctAudio);
-				});
+				}, false);
 			}
 			
 		}
@@ -370,7 +371,8 @@
 			var
 				url,
 				hashValue,
-				targetSource = (isVideo) ? videoSource : audioSource;
+				targetSource = (isVideo) ? videoSource : audioSource,
+				getFromPeer = (ind == 0) ? false : true;
 			
 			if (isVideo)
 			{
@@ -416,7 +418,7 @@
 						}
 					}, 10);
 				}
-			});
+			}, getFromPeer);
 		}
 		
 		

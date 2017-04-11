@@ -44,12 +44,13 @@
 					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=toystory_dash.dat">RANGE одна дорожка - toystory_dash.dat</a></li>
 					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=toystory_dash-dual.dat">RANGE две дорожки - toystory_dash-dual.dat</a></li>
 					<div>M4S</div>
-					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=test-manifest-toystory.dat">M4S удалённый файл, одна дорожка - test-manifest-toystory.dat</a></li>
+					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=manifest-toystory.dat">M4S удалённый файл, одна дорожка - manifest-toystory.dat</a></li>
+					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=test-manifest-toystory.dat">M4S локальный файл, одна дорожка - test-manifest-toystory.dat</a></li>
 					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=test-manifest-toystory-dual.dat">M4S локальный файл, две дорожки - test-manifest-toystory-dual.dat</a></li>
-					<li><a href="pages/rewind-dat-dual-hash-manager.php?file=manifest-toystory.dat">M4S локальный файл, одна дорожка - manifest-toystory.dat</a></li>
 					<div>использование PeerJS</div>
 					<li><a href="pages/rewind-dat-dual-hash-manager.php?peer=local">Локально Peer Client - RANGE одна дорожка - toystory_dash.dat</a></li>
 					<li><a href="pages/rewind-dat-dual-hash-manager.php?peer=remote">Удалённо Peer Client - RANGE одна дорожка - toystory_dash.dat</a></li>
+					<li><a href="pages/rewind-dat-dual-hash-manager.php?peer=remote&file=test-manifest-toystory.dat&type=m4s">Удалённо Peer Client - M4S локальный файл, одна дорожка - test-manifest-toystory.dat</a></li>
 				</ul>
 			</li>
 			<h2>Тестирование WebRTC</h2>
