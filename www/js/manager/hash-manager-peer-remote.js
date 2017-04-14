@@ -114,6 +114,13 @@ var Manager = (function() {
 			//console.log('AAA window.onunload window.onbeforeunload');
 			if (!!peer && !peer.destroyed) {
 				peer.destroy();
+				console.log('AAA Отправляем даные на сервер об отключенном пире: ', localClientID);
+				$.ajax("/scripts/test-del-hashes.php",{
+					type: "POST",
+					data: {id: localClientID},
+					success: function() {console.log('AAA data send success !!!')},
+					error : function() {}
+				});
 			}
 		};
 	}
@@ -128,10 +135,13 @@ var Manager = (function() {
 		
 		// Определяем peerId с запрашиваемым хеш-сегментом, в случае такогового запрашиваем данные через пиринг:
 		
+		
+		
+		
 		// Не запрашиваем через пиринг стартовые сегменты (Этот момент нужно организовать в логике): 
-		if (getFromPeer)
-		//if (hashValue != '61c85e432083be705ff75a2b10fcd213' && hashValue != '8014b59ef499b499fdd501528d25cada') // range
-		// if (hashValue != '093ca3e8291a7469cc82ee0352463019' && hashValue != '0ec93c6368e497a53df89b44ece0c6af') // m4s
+		if (getFromPeer && remoteClientID != 'remote')
+			// if (hashValue != '61c85e432083be705ff75a2b10fcd213' && hashValue != '8014b59ef499b499fdd501528d25cada') // range
+			// if (hashValue != '093ca3e8291a7469cc82ee0352463019' && hashValue != '0ec93c6368e497a53df89b44ece0c6af') // m4s
 		{
 			
 			// Определяем peerID клиента с данными хеша:
@@ -173,7 +183,7 @@ var Manager = (function() {
 			);
 			
 		}
-		else
+		else // Извлекаем данные из БД или отправляем запрос на сервер
 		{
 			console.log('AAA Извлекаем данные из базы: ', db);
 			var tx = db.transaction(storeName, "readonly");
@@ -520,6 +530,12 @@ var Manager = (function() {
 	function sendAllHashesClientData(clientPeerId, hashesValues)
 	{
 		console.log('AAA Отправляем даные на сервер об имеющихся ключах в локальной indexedDB: ', clientPeerId, '  ', hashesValues.length);
+		$.ajax("/scripts/test-send-hashes.php",{
+			type: "POST",
+			data: {id: clientPeerId, hashes: hashesValues},
+			success: function() {console.log('AAA data send success !!!')},
+			error : function() {}
+		});
 	}
 	
 	// Отправка данных о добавленном хеше в indexedDB:
