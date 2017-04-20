@@ -64,6 +64,7 @@ var Manager = (function() {
 				// Отправляем даные на сервер об имеющихся ключах в локальной indexedDB
 				if (localClientID)
 				{
+					console.log('AAA sendClientDataHashes 111 ', indexedHashesKeys);
 					sendClientDataHashes();
 				}
 			}
@@ -73,9 +74,6 @@ var Manager = (function() {
 			//console.log('AAA DB Подключиться к БД не удалось, обрабатываем ошибку');
 			$window.trigger('Manager:connect', {type: 'error'});
 		}
-		
-		
-		
 	}
 	
 	function initPeer()
@@ -94,6 +92,7 @@ var Manager = (function() {
 			// Отправляем даные на сервер об имеющихся ключах в локальной indexedDB
 			if (indexedHashesKeys)
 			{
+				console.log('AAA sendClientDataHashes 222 ', indexedHashesKeys);
 				sendClientDataHashes();
 			}
 		});
@@ -114,8 +113,7 @@ var Manager = (function() {
 			//console.log('AAA window.onunload window.onbeforeunload');
 			if (!!peer && !peer.destroyed) {
 				peer.destroy();
-				console.log('AAA Отправляем даные на сервер об отключенном пире: ', localClientID);
-				$.ajax("/scripts/test-del-hashes.php",{
+				$.ajax("/scripts/hashes-test-del.php",{
 					type: "POST",
 					data: {id: localClientID},
 					success: function() {console.log('AAA data send success !!!')},
@@ -129,170 +127,453 @@ var Manager = (function() {
 	function getSegment(hashValue, callback, getFromPeer)
 	{
 		console.log('AAA MMM getSegment = ', hashValue);
-		
 		getFromPeer = (typeof(getFromPeer) !== 'undefined') ?  getFromPeer : true;
 		console.log('AAA MMM getFromPeer = ', getFromPeer);
 		
-		// Определяем peerId с запрашиваемым хеш-сегментом, в случае такогового запрашиваем данные через пиринг:
 		
-		
-		
-		
-		// Не запрашиваем через пиринг стартовые сегменты (Этот момент нужно организовать в логике): 
-		if (getFromPeer && remoteClientID != 'remote')
-			// if (hashValue != '61c85e432083be705ff75a2b10fcd213' && hashValue != '8014b59ef499b499fdd501528d25cada') // range
-			// if (hashValue != '093ca3e8291a7469cc82ee0352463019' && hashValue != '0ec93c6368e497a53df89b44ece0c6af') // m4s
-		{
-			
-			// Определяем peerID клиента с данными хеша:
-			var requestedPeer = remoteClientID;
-			
-			// Для эмуляции запоса к отключенному клиенту с id=545454
-			// iii++;
-			//var requestedPeer = (iii == 1) ? '545454' : remoteClientID;
-			
-			console.log('AAA --->>> Peer Устанавливаем соединение c ', requestedPeer, ' seg = ', hashValue);
-					
-			getDataFromPeer(requestedPeer, hashValue,
-				function(dataResponse){
-						console.log('AAA getHashFromPeer success');
-						
-						// Сохраняем данные в базе
-						var tx = db.transaction("segments", "readwrite");
-						var store = tx.objectStore("segments");
-						var requestAddSegment = store.put({hash:hashValue, data: dataResponse});
-						requestAddSegment.onsuccess= function(){
-							console.log('AAA Данные сегмента сохранились');
-							// Отправляем инфу о сегменте на сервер:
-							addHashClientData(localClientID, hashValue);
-						}
-						requestAddSegment.onerror= function(){
-							console.log('AAA Во время сохранения данных произошла ошибка');
-						}
-					   
-						if ($.isFunction(callback))
-						{
-							var dataSegment = new Uint8Array(dataResponse);
-							callback(dataSegment);
-						}
-					},
-				function(){
-						console.log('AAA getHashFromPeer error');
-						getSegment(hashValue, callback);
-					}
-			);
-			
-		}
-		else // Извлекаем данные из БД или отправляем запрос на сервер
-		{
-			console.log('AAA Извлекаем данные из базы: ', db);
-			var tx = db.transaction(storeName, "readonly");
-			var store = tx.objectStore(storeName);
-			var index = store.index(indexName);
-			var requestDB = index.get(hashValue);
-			var segmentsDBItem;
-
-			requestDB.onsuccess = function(event) {
-				segmentsDBItem = requestDB.result;
-				// проверка в БД
-				if (segmentsDBItem)
+		// 1. Пытаемся отыскать данные в локальной БД:
+		console.log('AAA Извлекаем данные из базы: ', db);
+		getDataDB(hashValue,
+			function(segmentsDBItem){
+				console.log('AAA есть данные в локальной БД ', segmentsDBItem);
+				if ($.isFunction(callback))
 				{
-					console.log('AAA есть данные в локальной БД ', segmentsDBItem);
-					if ($.isFunction(callback))
-					{
-						var dataSegment = new Uint8Array(segmentsDBItem.data);
-						callback(dataSegment);
-					}
+					var dataSegment = new Uint8Array(segmentsDBItem.data);
+					callback(dataSegment);
+				}
+			},
+			function(){
+				// 2. Определяем peerId с запрашиваемым хеш-сегментом, в случае такогового запрашиваем данные через пиринг:
+				
+				
+				if (getFromPeer && remoteClientID != 'remote') // не делаем запрос пиринга для стартовых сегментов
+				{
+					console.log('AAA нет данных в БД, делаем запрос на пиринг');
+					console.log('AAA Определяем список peerId клиентов с заданным хешем ', hashValue);
+					$.ajax("/scripts/hashes-test-getpeers.php",{
+						type: "POST",
+						data: {hash: hashValue},
+						success: function(data) {
+							var peers = JSON.parse(data);
+							console.log('AAA data add success !!! ', peers);
+							
+							// Определяем peerID клиента с данными хеша:
+							//var requestedPeer = remoteClientID;
+							var requestedPeer = peers[0];
+							
+
+							// Для эмуляции запоса к отключенному клиенту с id=545454
+							// iii++;
+							//var requestedPeer = (iii == 1) ? '545454' : remoteClientID;
+
+							console.log('AAA --->>> Peer Устанавливаем соединение c ', requestedPeer, ' seg = ', hashValue);
+
+							// 3. Запрашиваем хеш через пиринг:
+							getDataFromPeer(requestedPeer, hashValue,
+								function(dataResponse){
+									console.log('AAA getHashFromPeer success');
+
+									saveDataDB(hashValue, dataResponse,
+										function(){
+											// Отправляем инфу о сегменте на сервер:
+											addHashClientData(localClientID, hashValue);
+										},
+										function(){}
+									);
+
+									if ($.isFunction(callback))
+									{
+										var dataSegment = new Uint8Array(dataResponse);
+										callback(dataSegment);
+									}
+								},
+								function(){
+									console.log('AAA getHashFromPeer error');
+									getSegment(hashValue, callback);
+									
+									// запрашиваем у другого пира:
+									
+									// запрашиваем с сервера:
+									requestDataFromServer(hashValue, callback);
+									
+								}
+							);
+							
+						},
+						error : function() {
+							requestDataFromServer(hashValue, callback);
+						}
+					});
+					
 				}
 				else
 				{
-					console.log('AAA нет данных в БД, делаем запрос на сервер');
+					// 4. Запрашиваем хеш с сервера:
+					console.log('AAA нет данных для пиринга, делаем запрос на сервер');
+					requestDataFromServer(hashValue, callback);
+				}
+				
+			}
+		);
+		
+		// Предыдущая логика:
+		if (false)
+		{
+		var
+			tx = db.transaction(storeName, "readonly"),
+			store = tx.objectStore(storeName),
+			index = store.index(indexName),
+			requestDB = index.get(hashValue),
+			segmentsDBItem;
+		
+		requestDB.onsuccess = function(event) {
+			segmentsDBItem = requestDB.result;
+			if (segmentsDBItem)
+			{
+				console.log('AAA есть данные в локальной БД ', segmentsDBItem);
+				if ($.isFunction(callback))
+				{
+					var dataSegment = new Uint8Array(segmentsDBItem.data);
+					callback(dataSegment);
+				}
+			}
+			else
+			{
+				// 2. Определяем peerId с запрашиваемым хеш-сегментом, в случае такогового запрашиваем данные через пиринг:
+				
+				console.log('AAA нет данных в БД, делаем запрос на пиринг');
+				if (getFromPeer && remoteClientID != 'remote') // не делаем запрос пиринга для стартовых сегментов
+				{
+					// Определяем peerID клиента с данными хеша:
+					var requestedPeer = remoteClientID;
 
-					if (type == 'mpd')
-					{
-						var segmentItem = _.find(segmentsData.segments, function(item){ return item.h == hashValue; });
-						var url = (segmentItem.t == 'v') ? segmentsData.file : segmentsData.fileAudio;
-						var range = segmentItem.r;
-					}
-					else // type == 'm4s'
-					{
-						var segmentItem = _.find(segmentsData.segments, function(item){ return item.h == hashValue; });
+					// Для эмуляции запоса к отключенному клиенту с id=545454
+					// iii++;
+					//var requestedPeer = (iii == 1) ? '545454' : remoteClientID;
 
-						if (segmentItem.i == 'i')
-						{
-							var url = (segmentItem.t == 'v') ? segmentsData.fileVideoInit : segmentsData.fileAudioInit;
-						}
-						else
-						{
-							var urlTemplate = (segmentItem.t == 'v') ? segmentsData.fileVideo : segmentsData.fileAudio;
-							var url = urlTemplate.replace("$Number$", segmentItem.i);
-						}
-					}
+					console.log('AAA --->>> Peer Устанавливаем соединение c ', requestedPeer, ' seg = ', hashValue);
 
-					if (segmentItem.r || url) {
+					getDataFromPeer(requestedPeer, hashValue,
+						function(dataResponse){
+							console.log('AAA getHashFromPeer success');
 
-						// Запрос на разные домены:
-						/*
-						serverNum = segmentNum % 4 + 1;
-						url = 'http://n' + serverNum + '.hls.dev/'+ url;
-						console.log('AAA playSegment ', ind, ' ', url);
-						segmentNum++;
-						*/
-
-						var xhr = new XMLHttpRequest();
-						// Set the desired range of bytes we want from the mp4 video file
-						xhr.open('GET', url);
-						xhr.responseType = 'arraybuffer';
-						if (type == 'mpd')
-						{
-							//console.log('AAA Range = ', range);
-							xhr.setRequestHeader("Range", "bytes=" + range);
-						}
-
-						xhr.send();
-
-						xhr.addEventListener("readystatechange", function () {
-							if (xhr.readyState == xhr.DONE && xhr.response != null /*&& xhr.status == 200*/) { // wait for video data to load
-
-								/*
-								var t0 = performance.now();
-								var hashData = hashGet(dataSegment);
-								var t1 = performance.now();
-								console.log('AAA xhr.response hash = ', Math.round(t1 - t0), 'msec. ', hashData);
-								*/
-
-								// Сохраняем данные в базе
-								//console.log('AAA Сохраняем данные в базе:');
-								var tx = db.transaction("segments", "readwrite");
-								var store = tx.objectStore("segments");
-								var requestAddSegment = store.put({hash:hashValue, data: xhr.response});
-								requestAddSegment.onsuccess= function(){
-									//console.log('AAA Данные сегмента сохранились');
+							saveDataDB(hashValue, dataResponse,
+								function(){
 									// Отправляем инфу о сегменте на сервер:
 									addHashClientData(localClientID, hashValue);
-								}
-								requestAddSegment.onerror= function(){
-									//console.log('AAA Во время сохранения данных произошла ошибка');
-								}
+								},
+								function(){}
+							);
 
-								if ($.isFunction(callback))
-								{
-									var dataSegment = new Uint8Array(xhr.response);
-									callback(dataSegment);
-								}
+							if ($.isFunction(callback))
+							{
+								var dataSegment = new Uint8Array(dataResponse);
+								callback(dataSegment);
 							}
-						}, false);
+						},
+						function(){
+								console.log('AAA getHashFromPeer error');
+								getSegment(hashValue, callback);
+							}
+					);
+				}
+				else
+				{
+					// 3. Запрашиваем хеш с сервера:
+					console.log('AAA нет данных для пиринга, делаем запрос на сервер');
+					getDataFromServer(hashValue,
+						function(dataResponse){
+
+							saveDataDB(hashValue, dataResponse,
+								function(){
+									// Отправляем инфу о сегменте на сервер:
+									addHashClientData(localClientID, hashValue);
+								},
+								function(){}
+							);
+
+							if ($.isFunction(callback))
+							{
+								var dataSegment = new Uint8Array(dataResponse);
+								callback(dataSegment);
+							}
+
+						}
+					);
+				}
+				
+			}
+		}
+
+		requestDB.onerror = function(event) {
+			console.log('AAA requestDB error ', event);
+			// ??? Возможно, переход к п.2
+		}
+		}
+		
+		// Предыдущая логика:
+		if (false)
+		{
+
+			// Не запрашиваем через пиринг стартовые сегменты: 
+			if (getFromPeer && remoteClientID != 'remote')
+				// if (hashValue != '61c85e432083be705ff75a2b10fcd213' && hashValue != '8014b59ef499b499fdd501528d25cada') // range
+				// if (hashValue != '093ca3e8291a7469cc82ee0352463019' && hashValue != '0ec93c6368e497a53df89b44ece0c6af') // m4s
+			{
+
+				// Определяем peerID клиента с данными хеша:
+				var requestedPeer = remoteClientID;
+
+				// Для эмуляции запоса к отключенному клиенту с id=545454
+				// iii++;
+				//var requestedPeer = (iii == 1) ? '545454' : remoteClientID;
+
+				console.log('AAA --->>> Peer Устанавливаем соединение c ', requestedPeer, ' seg = ', hashValue);
+
+				getDataFromPeer(requestedPeer, hashValue,
+					function(dataResponse){
+							console.log('AAA getHashFromPeer success');
+
+							// Сохраняем данные в базе
+							var tx = db.transaction("segments", "readwrite");
+							var store = tx.objectStore("segments");
+							var requestAddSegment = store.put({hash:hashValue, data: dataResponse});
+							requestAddSegment.onsuccess= function(){
+								console.log('AAA Данные сегмента сохранились');
+								// Отправляем инфу о сегменте на сервер:
+								addHashClientData(localClientID, hashValue);
+							}
+							requestAddSegment.onerror= function(){
+								console.log('AAA Во время сохранения данных произошла ошибка');
+							}
+
+							if ($.isFunction(callback))
+							{
+								var dataSegment = new Uint8Array(dataResponse);
+								callback(dataSegment);
+							}
+						},
+					function(){
+							console.log('AAA getHashFromPeer error');
+							getSegment(hashValue, callback);
+						}
+				);
+
+			}
+			else // Извлекаем данные из БД или отправляем запрос на сервер
+			{
+				console.log('AAA Извлекаем данные из базы: ', db);
+				var tx = db.transaction(storeName, "readonly");
+				var store = tx.objectStore(storeName);
+				var index = store.index(indexName);
+				var requestDB = index.get(hashValue);
+				var segmentsDBItem;
+
+				requestDB.onsuccess = function(event) {
+					segmentsDBItem = requestDB.result;
+					// проверка в БД
+					if (segmentsDBItem)
+					{
+						console.log('AAA есть данные в локальной БД ', segmentsDBItem);
+						if ($.isFunction(callback))
+						{
+							var dataSegment = new Uint8Array(segmentsDBItem.data);
+							callback(dataSegment);
+						}
 					}
+					else
+					{
+						console.log('AAA нет данных в БД, делаем запрос на сервер');
+
+						if (type == 'mpd')
+						{
+							var segmentItem = _.find(segmentsData.segments, function(item){ return item.h == hashValue; });
+							var url = (segmentItem.t == 'v') ? segmentsData.file : segmentsData.fileAudio;
+							var range = segmentItem.r;
+						}
+						else // type == 'm4s'
+						{
+							var segmentItem = _.find(segmentsData.segments, function(item){ return item.h == hashValue; });
+
+							if (segmentItem.i == 'i')
+							{
+								var url = (segmentItem.t == 'v') ? segmentsData.fileVideoInit : segmentsData.fileAudioInit;
+							}
+							else
+							{
+								var urlTemplate = (segmentItem.t == 'v') ? segmentsData.fileVideo : segmentsData.fileAudio;
+								var url = urlTemplate.replace("$Number$", segmentItem.i);
+							}
+						}
+
+						if (segmentItem.r || url) {
+
+							// Запрос на разные домены:
+							/*
+							serverNum = segmentNum % 4 + 1;
+							url = 'http://n' + serverNum + '.hls.dev/'+ url;
+							console.log('AAA playSegment ', ind, ' ', url);
+							segmentNum++;
+							*/
+
+							var xhr = new XMLHttpRequest();
+							// Set the desired range of bytes we want from the mp4 video file
+							xhr.open('GET', url);
+							xhr.responseType = 'arraybuffer';
+							if (type == 'mpd')
+							{
+								//console.log('AAA Range = ', range);
+								xhr.setRequestHeader("Range", "bytes=" + range);
+							}
+
+							xhr.send();
+
+							xhr.addEventListener("readystatechange", function () {
+								if (xhr.readyState == xhr.DONE && xhr.response != null /*&& xhr.status == 200*/) { // wait for video data to load
+
+									/*
+									var t0 = performance.now();
+									var hashData = hashGet(dataSegment);
+									var t1 = performance.now();
+									console.log('AAA xhr.response hash = ', Math.round(t1 - t0), 'msec. ', hashData);
+									*/
+
+									// Сохраняем данные в базе
+									//console.log('AAA Сохраняем данные в базе:');
+									var tx = db.transaction("segments", "readwrite");
+									var store = tx.objectStore("segments");
+									var requestAddSegment = store.put({hash:hashValue, data: xhr.response});
+									requestAddSegment.onsuccess= function(){
+										//console.log('AAA Данные сегмента сохранились');
+										// Отправляем инфу о сегменте на сервер:
+										addHashClientData(localClientID, hashValue);
+									}
+									requestAddSegment.onerror= function(){
+										//console.log('AAA Во время сохранения данных произошла ошибка');
+									}
+
+									if ($.isFunction(callback))
+									{
+										var dataSegment = new Uint8Array(xhr.response);
+										callback(dataSegment);
+									}
+								}
+							}, false);
+						}
+					}
+				}
+
+				requestDB.onerror = function(event) {
+					console.log('AAA requestDB error ', event);
 				}
 			}
 
-			requestDB.onerror = function(event) {
-				console.log('AAA requestDB error ', event);
-			}
 		}
-		
 	}
 	
+	
+	// Получение данных из БД:
+	function getDataDB(hashValue, successCallback, errorCallback)
+	{
+		var
+			tx = db.transaction(storeName, "readonly"),
+			store = tx.objectStore(storeName),
+			index = store.index(indexName),
+			requestDB = index.get(hashValue),
+			segmentsDBItem;
+	
+		requestDB.onsuccess = function(event) {
+			segmentsDBItem = requestDB.result;
+			if (segmentsDBItem)
+			{
+				if ($.isFunction(successCallback))
+				{
+					successCallback(segmentsDBItem);
+				}
+			}
+			else
+			{
+				if ($.isFunction(errorCallback))
+				{
+					errorCallback();
+				}
+			}
+			
+		}
+		
+		requestDB.onerror = function(event) {
+			if ($.isFunction(errorCallback))
+			{
+				console.log('AAA requestDB error ', event);
+				errorCallback();
+			}
+		}
+	}
+	
+	// Сохранение данных в БД:
+	function saveDataDB(hashValue, dataResponse, successCallback, errorCallback)
+	{
+		// Сохраняем данные в базе
+		var
+			tx = db.transaction("segments", "readwrite"),
+			store = tx.objectStore("segments"),
+			requestAddSegment = store.put({hash:hashValue, data: dataResponse});
+	
+		requestAddSegment.onsuccess= function(){
+			if ($.isFunction(successCallback))
+			{
+				console.log('AAA Данные сегмента сохранились');
+				successCallback();
+			}
+		}
+		requestAddSegment.onerror= function(){
+			if ($.isFunction(errorCallback))
+			{
+				console.log('AAA Во время сохранения данных произошла ошибка');
+				errorCallback();
+			}
+		}
+	}
+	
+	// Запрос данных с сервера
+	function requestDataFromServer(hashValue, callback)
+	{
+		getDataFromServer(hashValue,
+			function(dataResponse){
+
+				saveDataDB(hashValue, dataResponse,
+					function(){
+						// Отправляем инфу о сегменте на сервер:
+						if (localClientID)
+						{
+							addHashClientData(localClientID, hashValue);
+						}
+						else
+						{
+							var inter = setInterval(function(){
+								if (localClientID)
+								{
+									addHashClientData(localClientID, hashValue);
+									clearInterval(inter);
+								}
+							}, 10);
+						}
+
+					},
+					function(){}
+				);
+
+				if ($.isFunction(callback))
+				{
+					var dataSegment = new Uint8Array(dataResponse);
+					callback(dataSegment);
+				}
+
+			}
+		);
+	}
+	
+	// Получение данных от пиринга
 	function getDataFromPeer(requestedPeer, hashValue, successCallback, errorCallback)
 	{
 		// Соединение для передачи данных.
@@ -382,28 +663,58 @@ var Manager = (function() {
 		});
 	}
 	
-	function hashGet(str)
+	// Получение данных с сервера
+	function getDataFromServer(hashValue, successCallback)
 	{
-		var bytesCount = 30000;
-		var dataStr;
+		console.log('AAA getDataFromServer ', hashValue);
 		
-		if (str.length < bytesCount)
+		var
+			url,
+			segmentItem,
+			range,
+			urlTemplate;
+		
+		if (type == 'mpd') // type == 'range'
 		{
-			dataStr = str;
+			segmentItem = _.find(segmentsData.segments, function(item){ return item.h == hashValue; });
+			url = (segmentItem.t == 'v') ? segmentsData.file : segmentsData.fileAudio;
+			range = segmentItem.r;
 		}
-		else
+		else // type == 'm4s'
 		{
-			dataStr = [];
-			var step = Math.floor(str.length/bytesCount);
-			var j = 0;
-			while (j < str.length)
+			segmentItem = _.find(segmentsData.segments, function(item){ return item.h == hashValue; });
+
+			if (segmentItem.i == 'i')
 			{
-				dataStr.push(str[j]);
-				j += step;
+				url = (segmentItem.t == 'v') ? segmentsData.fileVideoInit : segmentsData.fileAudioInit;
+			}
+			else
+			{
+				urlTemplate = (segmentItem.t == 'v') ? segmentsData.fileVideo : segmentsData.fileAudio;
+				url = urlTemplate.replace("$Number$", segmentItem.i);
 			}
 		}
 
-	   return Hash.hash(dataStr);
+		if (segmentItem.r || url) {
+
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', url);
+			xhr.responseType = 'arraybuffer';
+			if (type == 'mpd')
+			{
+				// Set the desired range of bytes we want from the mp4 video file
+				xhr.setRequestHeader("Range", "bytes=" + range);
+			}
+			xhr.send();
+			xhr.addEventListener("readystatechange", function () {
+				if (xhr.readyState == xhr.DONE && xhr.response != null /*&& xhr.status == 200*/) { // wait for video data to load
+					if ($.isFunction(successCallback))
+					{
+						successCallback(xhr.response);
+					}
+				}
+			}, false);
+		}
 	}
 	
 	// Handle a connection object.
@@ -504,7 +815,7 @@ var Manager = (function() {
 					var segmentsToFreeCount = Math.ceil((size-limitSize)/meanSegmentSize);
 					console.log('AAA localClientID: ', localClientID, ' segmentsToFreeCount = ', segmentsToFreeCount);
 					// 3. от сервера получаем номера сегментов для удаления
-					$.ajax("/scripts/test-segments-free.php",{
+					$.ajax("/scripts/hashes-test-free.php",{
 						type: "GET",
 						dataType: "json",
 						data: {id: localClientID, remote: remoteClientID, count: segmentsToFreeCount},
@@ -530,7 +841,7 @@ var Manager = (function() {
 	function sendAllHashesClientData(clientPeerId, hashesValues)
 	{
 		console.log('AAA Отправляем даные на сервер об имеющихся ключах в локальной indexedDB: ', clientPeerId, '  ', hashesValues.length);
-		$.ajax("/scripts/test-send-hashes.php",{
+		$.ajax("/scripts/hashes-test-send.php",{
 			type: "POST",
 			data: {id: clientPeerId, hashes: hashesValues},
 			success: function() {console.log('AAA data send success !!!')},
@@ -542,6 +853,13 @@ var Manager = (function() {
 	function addHashClientData(clientPeerId, hashValue)
 	{
 		console.log('AAA Отправляем даные на сервер о добавленном ключе в локальной indexedDB: ', clientPeerId, '  ', hashValue);
+		
+		$.ajax("/scripts/hashes-test-add.php",{
+			type: "POST",
+			data: {id: clientPeerId, hash: hashValue},
+			success: function() {console.log('AAA data add success !!!')},
+			error : function() {}
+		});
 	}
 	
 	// Удаление из indexedDB пары ключ-значение
@@ -559,6 +877,31 @@ var Manager = (function() {
 			sendAllHashesClientData(localClientID, getAllHashesKeys.result);
 		}
 		
+	}
+	
+	// Вычисление HASH сегементов
+	function hashGet(str)
+	{
+		var bytesCount = 30000;
+		var dataStr;
+		
+		if (str.length < bytesCount)
+		{
+			dataStr = str;
+		}
+		else
+		{
+			dataStr = [];
+			var step = Math.floor(str.length/bytesCount);
+			var j = 0;
+			while (j < str.length)
+			{
+				dataStr.push(str[j]);
+				j += step;
+			}
+		}
+
+	   return Hash.hash(dataStr);
 	}
 	
 	// Convert size in bytes to KB, MB, GB
