@@ -9,7 +9,7 @@
 		<h2>video</h2>
 		<div id="grid">
 			<video width="640" height="360" id="myVideo" controls>
-				<source src="/_diff_video/toystory.mp4" type="video/mp4">
+				<source id="mySrc" src="/_diff_video/toystory.mp4" type="video/mp4">
 				<!--
 				<source src="/video/monaco_dashinit.mp4" type="video/mp4">
 				<source src="/video/fox6_dashinit.mp4" type="video/mp4">
@@ -22,7 +22,11 @@
 		</div>
 		<div id="seek-div" style="cursor: pointer; margin-top: 4px">[seek->]</div>
 		
+		<div id="set-src" style="cursor: pointer; margin-top: 4px">[set-src->]</div>
+		
 		<script>
+			
+							
 			// Принудительный seek в проблемное место:
 			document.getElementById('seek-div').addEventListener('click', function (e) {
 				console.log('AAA SEEK');
@@ -30,6 +34,7 @@
 				videoElement.currentTime = 3750;
 				videoElement.pause();
 			});
+
 		</script>
 		
 	</body>

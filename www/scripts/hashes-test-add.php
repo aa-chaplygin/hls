@@ -1,5 +1,6 @@
 <?php
 
+	header("Access-Control-Allow-Origin: *");
 	sleep(1);
 	
 	$peer_id = $_POST['id'];

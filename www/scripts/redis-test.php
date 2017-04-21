@@ -4,8 +4,8 @@
 
 	sleep(1);
 	
-	$peer_id = $_POST['id'];
-	$hashes = (isset($_POST['hashes'])) ? $_POST['hashes'] : null;
+	$peer_id = '123';
+	$hashes = ['hhh'];
 	
 	// Redis
 	try {
@@ -18,7 +18,7 @@
 	}
 	
 	// Дробавляем запись об информация по каждому пиру
-	$peer_id_exist = $redis->exists('user:'.$peer_id);
+	$peer_id_exist = $redis->exists($peer_id);
 	if (!$peer_id_exist)
 	{
 		$redis->hmset('user:'.$peer_id, array(
