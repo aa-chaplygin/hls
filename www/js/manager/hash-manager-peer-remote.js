@@ -28,8 +28,10 @@ var Manager = (function() {
 
 
 	var 
-		//redisServerPrefix = 'http://redis.crisp.dev.fs.ai';
-		redisServerPrefix = '';
+		//redisServerPrefix = 'http://redis.crisp.dev.fs.ai/scripts/redis/';
+		//redisServerPrefix = '/scripts/redis/';
+		redisServerPrefix = '/scripts/mysql/';
+		//redisServerPrefix = '/scripts/dat-file/';
 
 	function initData(data)
 	{
@@ -117,7 +119,7 @@ var Manager = (function() {
 			//console.log('AAA window.onunload window.onbeforeunload');
 			if (!!peer && !peer.destroyed) {
 				peer.destroy();
-				$.ajax(redisServerPrefix +"/scripts/hashes-test-del.php",{
+				$.ajax(redisServerPrefix +"hashes-test-del.php",{
 					type: "POST",
 					data: {id: localClientID},
 					success: function() {console.log('AAA data send success !!!')},
@@ -155,36 +157,44 @@ var Manager = (function() {
 				{
 					console.log('AAA нет данных в БД, делаем запрос на пиринг');
 					console.log('AAA Определяем список peerId клиентов с заданным хешем ', hashValue);
-					$.ajax(redisServerPrefix + "/scripts/hashes-test-getpeers.php",{
+					$.ajax(redisServerPrefix + "hashes-test-getpeers.php",{
 						type: "POST",
 						data: {hash: hashValue},
 						success: function(data) {
 							var peers = JSON.parse(data);
 							console.log('AAA get peers success !!! : ', peers);
-							
-							// Определяем peerID клиента с данными хеша:
-							//var requestedPeer = remoteClientID;
-							
-							// Для эмуляции запоса к отключенному клиенту с id=545454
-							// iii++;
-							//var requestedPeer = (iii == 1) ? '545454' : remoteClientID;
-							
-							var requestedPeer = peers[0] + '_111';
-							peers.splice(0, 1);
+							if (peers.length>0)
+							{
+								// Определяем peerID клиента с данными хеша:
+								//var requestedPeer = remoteClientID;
 
-							// 3. Запрашиваем хеш через пиринг:
-							requestDataFromPeer(requestedPeer, hashValue, callback, function callbackErr(){
-								if(peers.length > 0)
-								{
-									// запрашиваем у другого пира:
-									requestDataFromPeer(peers[0], hashValue, callback, callbackErr);
-								}
-								else
-								{
-									// запрашиваем с сервера:
-									requestDataFromServer(hashValue, callback);
-								}
-							});
+								// Для эмуляции запоса к отключенному клиенту с id=545454
+								// iii++;
+								//var requestedPeer = (iii == 1) ? '545454' : remoteClientID;
+
+								var requestedPeer = peers[0];
+
+								// 3. Запрашиваем хеш через пиринг:
+								requestDataFromPeer(requestedPeer, hashValue, callback, function callbackErr(){
+									console.log('AAA requestDataFromPeer error');
+									peers.splice(0, 1);
+									if(peers.length > 0)
+									{
+										// запрашиваем у другого пира:
+										console.log('AAA --->>> Запрашиваем у пира: ', peers[0], ' seg = ', hashValue);
+										requestDataFromPeer(peers[0], hashValue, callback, callbackErr);
+									}
+									else
+									{
+										console.log('AAA нет данных для пиринга, делаем запрос на сервер');
+										requestDataFromServer(hashValue, callback);
+									}
+								});
+							}
+							else
+							{
+								requestDataFromServer(hashValue, callback);
+							}
 							
 							
 						},
@@ -271,8 +281,6 @@ var Manager = (function() {
 	// Запрос данных от пиринга
 	function requestDataFromPeer(requestedPeer, hashValue, callback, callbackError)
 	{
-		console.log('AAA --->>> Peer Устанавливаем соединение c ', requestedPeer, ' seg = ', hashValue);
-		
 		getDataFromPeer(requestedPeer, hashValue,
 			function(dataResponse){
 				saveDataDB(hashValue, dataResponse,
@@ -290,7 +298,6 @@ var Manager = (function() {
 				}
 			},
 			function(){
-				console.log('AAA requestDataFromPeer error');
 				if ($.isFunction(callbackError))
 				{
 					callbackError();
@@ -579,7 +586,7 @@ var Manager = (function() {
 					var segmentsToFreeCount = Math.ceil((size-limitSize)/meanSegmentSize);
 					console.log('AAA localClientID: ', localClientID, ' segmentsToFreeCount = ', segmentsToFreeCount);
 					// 3. от сервера получаем номера сегментов для удаления
-					$.ajax(redisServerPrefix + "/scripts/hashes-test-free.php",{
+					$.ajax(redisServerPrefix + "hashes-test-free.php",{
 						type: "GET",
 						dataType: "json",
 						data: {id: localClientID, remote: remoteClientID, count: segmentsToFreeCount},
@@ -605,7 +612,7 @@ var Manager = (function() {
 	function sendAllHashesClientData(clientPeerId, hashesValues)
 	{
 		console.log('AAA Отправляем даные на сервер об имеющихся ключах в локальной indexedDB: ', clientPeerId, '  ', hashesValues.length);
-		$.ajax(redisServerPrefix + "/scripts/hashes-test-send.php",{
+		$.ajax(redisServerPrefix + "hashes-test-send.php",{
 			type: "POST",
 			data: {id: clientPeerId, hashes: hashesValues},
 			success: function() {console.log('AAA data send success !!!')},
@@ -618,7 +625,7 @@ var Manager = (function() {
 	{
 		console.log('AAA Отправляем даные на сервер о добавленном ключе в локальной indexedDB: ', clientPeerId, '  ', hashValue);
 		
-		$.ajax(redisServerPrefix + "/scripts/hashes-test-add.php",{
+		$.ajax(redisServerPrefix + "hashes-test-add.php",{
 			type: "POST",
 			data: {id: clientPeerId, hash: hashValue},
 			success: function() {console.log('AAA data add success !!!')},

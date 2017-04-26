@@ -37,9 +37,11 @@
 	<!-- Передача параметров от PHP-скриптов пожатым JS-скриптам -->
 	<script type="text/javascript">
 
+		<? if (isset($_GET['peer'])) { ?>
 		window.WebRTC_GLOBALS = {
 			remote_id: '<?=$_GET['peer'] ?>'
 			}
+		<? } ?>
 		
 		window.HLS_GLOBALS = {
 			file_dat: '/video/<?=$filename ?>',

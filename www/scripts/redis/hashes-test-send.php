@@ -44,8 +44,6 @@
 		}
 	}
 	
-	
-	
 	//$data = $redis->smembers('hash:'.'8014b59ef499b499fdd501528d25cada');
 	//$data = $redis->smembers('hash:'.'616b3679d8e1b8cd53de414e657fbed8');
 	
