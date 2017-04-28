@@ -22,7 +22,9 @@ var Manager = (function() {
 		limitSize = 20000000,
 	
 		peer,
-		myAPIKey = 'lwjd5qra8257b9',
+		//myAPIKey = 'lwjd5qra8257b9',
+		//myAPIKey = 'x7fwx2kavpy6tj4i',
+		myAPIKey = 'nemmvtgx9kzc9pb9',
 		localClientID,
 		remoteClientID;
 
@@ -49,7 +51,7 @@ var Manager = (function() {
 		var indexDBRequest = indexedDB.open(baseName, 1);
 		
 		indexDBRequest.onupgradeneeded = function (event) {
-			//console.log('AAA DB Базы ранее не существовало ');
+			console.log('AAA DB Базы ранее не существовало ');
 			db = event.target.result;
 			// Создаем хранилище объектов для БД: keyPath - уникальное свойство, которое будет однозначно идентифицировать запись в хранилище
 			segmentStore = db.createObjectStore(storeName, {keyPath: fieldName});
@@ -60,7 +62,7 @@ var Manager = (function() {
 			}
 		};
 		indexDBRequest.onsuccess = function (event) {
-			//console.log('AAA DB Подключились к существующей БД ', managerItem);
+			console.log('AAA DB Подключились к существующей БД ', managerItem);
 			db = event.target.result;
 			$window.trigger('Manager:connect', {type: 'success'});
 			
@@ -129,16 +131,14 @@ var Manager = (function() {
 		};
 	}
 	
-	var iii = 0;
 	function getSegment(hashValue, callback, getFromPeer)
 	{
-		console.log('AAA MMM getSegment = ', hashValue);
-		getFromPeer = (typeof(getFromPeer) !== 'undefined') ?  getFromPeer : true;
-		console.log('AAA MMM getFromPeer = ', getFromPeer);
 		
+		getFromPeer = (typeof(getFromPeer) !== 'undefined') ?  getFromPeer : true;
+		console.log('AAA MMM getSegment: ', hashValue, ' getFromPeer: ', getFromPeer);
 		
 		// 1. Пытаемся отыскать данные в локальной БД:
-		console.log('AAA Извлекаем данные из базы: ', db);
+		console.log('AAA Извлекаем данные из базы: ', db.name);
 		getDataDB(hashValue,
 			function(segmentsDBItem){
 				console.log('AAA есть данные в локальной БД ', segmentsDBItem);
@@ -150,7 +150,6 @@ var Manager = (function() {
 			},
 			function(){
 				// 2. Определяем peerId с запрашиваемым хеш-сегментом, в случае такогового запрашиваем данные через пиринг:
-				
 				
 				//if (getFromPeer && remoteClientID != 'remote') // не делаем запрос пиринга для стартовых сегментов
 				if (getFromPeer) // не делаем запрос пиринга для стартовых сегментов
@@ -168,10 +167,6 @@ var Manager = (function() {
 								// Определяем peerID клиента с данными хеша:
 								//var requestedPeer = remoteClientID;
 
-								// Для эмуляции запоса к отключенному клиенту с id=545454
-								// iii++;
-								//var requestedPeer = (iii == 1) ? '545454' : remoteClientID;
-
 								var requestedPeer = peers[0];
 
 								// 3. Запрашиваем хеш через пиринг:
@@ -186,19 +181,20 @@ var Manager = (function() {
 									}
 									else
 									{
-										console.log('AAA нет данных для пиринга, делаем запрос на сервер');
+										console.log('AAA закончились данные для пиринга, делаем запрос на сервер');
 										requestDataFromServer(hashValue, callback);
 									}
 								});
 							}
 							else
 							{
+								console.log('AAA нет данных для пиринга, делаем запрос на сервер');
 								requestDataFromServer(hashValue, callback);
 							}
 							
-							
 						},
 						error : function() {
+							console.log('AAA нет данных для пиринга, делаем запрос на сервер');
 							requestDataFromServer(hashValue, callback);
 						}
 					});
@@ -207,7 +203,7 @@ var Manager = (function() {
 				else
 				{
 					// 4. Запрашиваем хеш с сервера:
-					console.log('AAA нет данных для пиринга, делаем запрос на сервер');
+					console.log('AAA Для стартового сегмента делаем запрос на сервер');
 					requestDataFromServer(hashValue, callback);
 				}
 				
@@ -312,18 +308,23 @@ var Manager = (function() {
 		// Соединение для передачи данных.
 		var dataConnection = peer.connect(requestedPeer, {
 			label: 'data',
-			reliable: true
+			//reliable: true
+			reliable: false // эксперимен
 		});
 
+		//dataConnection.close(); // эксперимен
+		
+		if (true){
+
 		dataConnection.on('open', function() {
-			console.log('AAA dataConnection.open ', this);
-			var thisConnection = this;
 
 			// Отправляем данные
+			var thisConnection = this;
 			var peerId = thisConnection.peer;
-			console.log('AAA dataConnection.open peerId: ', peerId, ' connectionID: ', thisConnection.id);
 			var conns = peer.connections[peerId];
 			var conn = _.find(conns, function(c){ return c.id == thisConnection.id; });
+			
+			console.log('AAA dataConnection.open peerId: ', peerId, ' connectionID: ', thisConnection.id);
 
 			var dataRequest = {
 					type: 'request',
@@ -331,7 +332,8 @@ var Manager = (function() {
 					hashValue: hashValue,
 					clientID: peer.id
 				};
-			if (conn.label === 'data') {
+			if (conn.label == 'data') {
+				console.log('AAA отправляем данные dataRequest = ', dataRequest);
 				conn.send(dataRequest);
 			}
 
@@ -341,8 +343,8 @@ var Manager = (function() {
 			if (data.type == 'response')
 			{
 				var thisConnection = this;
-				console.log('AAA получили ответ от id: ', data.clientID, '  ', thisConnection.id,' на hashValue: ', data.hashValue);
-				console.log('AAA peer.connections: --> ', peer.connections);
+				console.log('AAA получили ответ от id: ', data.clientID, ' на hashValue: ', data.hashValue);
+				//console.log('AAA peer.connections: --> ', peer.connections);
 
 				// Закрываем соединение
 				var peerId = data.clientID;
@@ -394,6 +396,8 @@ var Manager = (function() {
 				errorCallback();
 			}
 		});
+	
+		}
 	}
 	
 	// Запрос данных с сервера
@@ -494,22 +498,27 @@ var Manager = (function() {
 		console.log('AAA -->>-- targetConnection peer =  ', peer.connections);
 		
 		// Handle a chat connection.
-		if (targetConnection.label === 'data') {
+		if (targetConnection.label == 'data') {
+			
+			targetConnection.on('open', function(){
+				console.log('AAA targetConnection.open ');
+			});
 			
 			targetConnection.on('data', function(data) {
+				console.log('AAA -->>-- targetConnection data = ', data);
 				if (data.type == 'request')
 				{
 					var thisConnection = this;
-					
+
 					console.log('AAA получили запрос ', thisConnection.id, ' от ', data.clientID, ' на hashValue: ', data.hashValue);
 					console.log('AAA Извлекаем данные из базы на клиенте ', peer.id);
-					
+
 					var tx = db.transaction(storeName, "readonly");
 					var store = tx.objectStore(storeName);
 					var index = store.index(indexName);
 					var requestDB = index.get(data.hashValue);
 					var segmentsDBItem;
-					
+
 					requestDB.onsuccess = function(event) {
 						segmentsDBItem = requestDB.result;
 						if (segmentsDBItem)
@@ -517,7 +526,7 @@ var Manager = (function() {
 							//console.log('AAA -->> есть данные в БД ', segmentsDBItem);
 							//var dataSegment = new Uint8Array(segmentsDBItem.data);
 							var dataSegment = segmentsDBItem.data;
-							
+
 							// Возвращаем ответ:
 							console.log('AAA Возвращаем ответ по соединению: ', thisConnection.id);
 							var peerId = targetConnection.peer;
@@ -530,26 +539,27 @@ var Manager = (function() {
 									clientID: peer.id,
 									data: dataSegment
 								};
-							if (conn.label === 'data') {
+							if (conn.label == 'data') {
 								conn.send(dataResponse);
 							}
-							
+
 						}
 					}
-					
+
 					requestDB.onerror = function(event) {
 						console.log('AAA requestDB error ', event);
 					}
 				}
 			});
-			
+
 			targetConnection.on('error', function(err) {
 				console.log('AAA targetConnection.error ', err);
 			});
-			
+
 			targetConnection.on('close', function() {
 				console.log('AAA targetConnection.close ', this);
 			});
+			
 		}
 		
 	}

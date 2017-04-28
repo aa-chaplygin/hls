@@ -1,8 +1,8 @@
 <?php
 
 	header("Access-Control-Allow-Origin: *");
-	sleep(1);
 	
+	/*
 	if ($_GET['remote'] == 'remote')
 	{
 		$hashes = array(
@@ -19,7 +19,9 @@
 			'd05a64b557279f54a7c2ed602352cec8'
 		);
 	}
+	*/
 	
+	$hashes = array();
 	echo json_encode($hashes);
 	
 
