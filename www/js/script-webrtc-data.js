@@ -1,14 +1,15 @@
 $(document).ready(function() {
 	
 	var clientID = window.WebRTC_GLOBALS.client_id;
-	var localClientID = (clientID == 1) ? '111asdasdasd' : '222asdasdasd';
-	var remoteClientID = (clientID == 1) ? '222asdasdasd' : '111asdasdasd';
+	var localClientID = (clientID == 1) ? '333asdasdasd' : '444asdasdasd';
+	var remoteClientID = (clientID == 1) ? '444asdasdasd' : '333asdasdasd';
 	
 	var peer;
 	
 	// Регистрируем свой peer
 	var keyID = localClientID;
-	peer = new Peer(keyID, {key: 'x7fwx2kavpy6tj4i'});
+	//peer = new Peer(keyID, {key: 'x7fwx2kavpy6tj4i'});
+	peer = new Peer(keyID, {key: 'nemmvtgx9kzc9pb9'});
 		
 	// Показываем свой ID.
 	peer.on('open', function(id){
@@ -47,7 +48,8 @@ $(document).ready(function() {
 					type: 'request',
 					id: '123'
 				};
-			if (conn.label === 'data') {
+			if (conn.label == 'data') {
+				console.log('AAA  Отправляем данные dataRequest: ', dataRequest);
 				conn.send(dataRequest);
 			}
 			
@@ -60,9 +62,11 @@ $(document).ready(function() {
 	function connect(c) {
 		console.log('AAA connect: ', c);
 		// Handle a chat connection.
-		if (c.label === 'data') {
+		if (c.label == 'data') {
+			
 			c.on('data', function(data) {
-
+				console.log('AAA connect data: ', data);	
+					
 				if (data.type == 'request')
 				{
 					console.log('AAA получили запрос на id: ', data.id);
@@ -74,7 +78,7 @@ $(document).ready(function() {
 							id: data.id,
 							data: 'response -> 123123123'
 						};
-					if (conn.label === 'data') {
+					if (conn.label == 'data') {
 						conn.send(dataResponse);
 					}
 				   

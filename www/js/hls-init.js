@@ -50,7 +50,34 @@ window.onload = function()
 			//videoElement.currentTime = 100;
 			videoElement.currentTime = 60;
 			//videoElement.pause();
-		});	
+		});
+		
+		
+		// WebSocket
+		var ws;
+		
+		//ws = new WebSocket("ws://hls.dev:8000/demo/server.php");
+		ws = new WebSocket("ws://hls.dev:889/demo/simpleworking.php");
+		//ws = new WebSocket("ws://echo.websocket.org");
+		
+		// первый вызовется, когда соединение будет установлено:
+		ws.onopen = function() { console.log("AAA WS Connection opened...") };
+		// второй - когда соединено закроется
+		ws.onclose = function() { console.log("AAA WS Connection closed..."); ws.close();};
+		// и, наконец, третий - каждый раз, когда браузер получает какие-то данные через веб-сокет
+		ws.onmessage = function(evt) { console.log("AAA WS Connection message: ", evt.data) };
+		ws.onerror = function() { console.log("AAA WS Connection error...") };
+		
+		document.getElementById('ws-send-div').addEventListener('click', function (e) {
+			console.clear();
+			//prepare json data
+			var msg = {
+				data: 123,
+			};
+			console.log('AAA WS-SEND ', JSON.stringify(msg));
+			ws.send(JSON.stringify(msg));
+			
+		});
 
 	})();
 

@@ -1,21 +1,13 @@
 <?php
 
 	header("Access-Control-Allow-Origin: *");
-
 	sleep(1);
 	
 	$peer_id = $_POST['id'];
 	$hashes = (isset($_POST['hashes'])) ? $_POST['hashes'] : null;
 	
-	// Redis
-	try {
-		$redis = new Redis(); 
-		$redis->connect('localhost', 6379); 
-		echo "Connection to server sucessfully";
-	}
-	catch (RedisException $e) {
-		die("Ошибка подключения к Redis ".$e);
-	}
+	// Подключаемся к Redis
+	require 'redis-connect.php';
 	
 	// Дробавляем запись об информация по каждому пиру
 	$peer_id_exist = $redis->exists('user:'.$peer_id);
@@ -49,15 +41,6 @@
 	
 	$data = $redis->keys('user:*');
 	var_dump($data);
-	
-	
-	// Удаление всех данных
-	/*
-	$all_data = $redis->keys('*');
-	foreach ($all_data as $data) {
-		$redis->del($data);
-	}
-	*/
 	
 	$redis->save();
 	$redis -> close();

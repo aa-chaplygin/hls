@@ -29,7 +29,7 @@
 		</div>
 	</div>
 	
-	<div id="send-data">Send data --> </div>
+	<div id="send-data" style="cursor: pointer;">Send data --> </div>
 	
 </body>
 </html>

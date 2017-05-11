@@ -78,6 +78,10 @@
 					<li><a href="pages/rewind-dat-dual-hash-manager.php?peer=remote">Удалённо Peer Client - RANGE одна дорожка - toystory_dash.dat</a></li>
 				</ul>
 			</li>
+			
+			<h2>Тестирование PeerJS</h2>
+			<li><a href="pages/webrtc-data.php?client=1">data-client-1</a></li>
+			<li><a href="pages/webrtc-data.php?client=2">data-client-2</a></li>
 		
 		<? } ?>
 			

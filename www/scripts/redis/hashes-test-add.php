@@ -6,15 +6,8 @@
 	$peer_id = $_POST['id'];
 	$hash = $_POST['hash'];
 
-	// Redis
-	try {
-		$redis = new Redis(); 
-		$redis->connect('localhost', 6379); 
-		echo "Connection to server sucessfully";
-	}
-	catch (RedisException $e) {
-		die("Ошибка подключения к Redis ".$e);
-	}
+	// Подключаемся к Redis
+	require 'redis-connect.php';
 	
 	// Дробавляем запись о хеше пользователя
 	//if ($redis->exists('hash:'.$hash))

@@ -5,14 +5,8 @@
 	
 	$hash = $_POST['hash'];
 
-	// Redis
-	try {
-		$redis = new Redis(); 
-		$redis->connect('localhost', 6379); 
-	}
-	catch (RedisException $e) {
-		die("Ошибка подключения к Redis ".$e);
-	}
+	// Подключаемся к Redis
+	require 'redis-connect.php';
 	
 	$data = $redis->smembers('hash:'.$hash);
 	

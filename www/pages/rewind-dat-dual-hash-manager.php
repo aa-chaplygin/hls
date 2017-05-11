@@ -70,6 +70,7 @@
 		<video id="myVideo" width="640" height="360" controls>No video available</video>
 	</div>
 	<div id="seek-div" style="cursor: pointer; margin-top: 4px">[seek->]</div>
+	<div id="ws-send-div" style="cursor: pointer; margin-top: 4px">[ws-send->]</div>
 	
 	<? if (isset($_GET['peer'])) { ?>
 	<div id="peer-div" style="cursor: pointer; margin-top: 4px">[peer->]</div>
